@@ -1,0 +1,27 @@
+@layer utilities {
+  ::-webkit-scrollbar {
+    width: 0.8rem;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: var(--radius);
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: var(--gradient-primary);
+    border-radius: var(--radius);
+    border: 2px solid hsl(var(--muted));
+    transition: var(--transition-bounce);
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--gradient-hero);
+    box-shadow: var(--shadow-glow);
+  }
+  
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary)) hsl(var(--muted));
+  }
+}

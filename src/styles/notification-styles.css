@@ -1,0 +1,185 @@
+/* Notification Animation Keyframes */
+@keyframes notificationEnter {
+  from {
+    transform: translateX(400px) scale(0.95);
+    opacity: 0;
+  }
+  
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes notificationExit {
+  from {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  
+  to {
+    transform: translateX(400px) scale(0.95);
+    opacity: 0;
+  }
+}
+
+@keyframes iconEnter {
+  from {
+    transform: scale(0) rotate(-180deg);
+  }
+  
+  to {
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes contentEnter {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes closeButtonEnter {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes accentLineEnter {
+  from {
+    transform: scaleX(0);
+  }
+  
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes titleEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes messageEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes footerEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sparkleEnter {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes countdownPulse {
+  0% {
+    transform: scale(1.1);
+  }
+  
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Notification Animation Classes */
+.notification-enter {
+  animation: notificationEnter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.notification-exit {
+  animation: notificationExit 0.3s ease-in-out forwards;
+}
+
+.notification-icon-enter {
+  animation: iconEnter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.1s both;
+}
+
+.notification-content-enter {
+  animation: contentEnter 0.4s ease-out 0.2s both;
+}
+
+.notification-close-enter {
+  animation: closeButtonEnter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.3s both;
+}
+
+.notification-close:hover {
+  transform: scale(1.1) rotate(90deg);
+  transition: transform 0.2s ease;
+}
+
+.notification-close:active {
+  transform: scale(0.9);
+}
+
+.notification-accent-enter {
+  animation: accentLineEnter 0.5s ease-out 0.4s forwards;
+  transform-origin: left;
+}
+
+.notification-title-enter {
+  animation: titleEnter 0.4s ease-out 0.3s both;
+}
+
+.notification-message-enter {
+  animation: messageEnter 0.4s ease-out 0.4s both;
+}
+
+.notification-message-enter-no-title {
+  animation: messageEnter 0.4s ease-out 0.3s both;
+}
+
+.notification-footer-enter {
+  animation: footerEnter 0.4s ease-out 0.5s both;
+}
+
+.notification-sparkle-enter {
+  animation: sparkleEnter 0.3s ease-out 0.6s both;
+}
+
+.notification-countdown-pulse {
+  animation: countdownPulse 0.2s ease-out forwards;
+}

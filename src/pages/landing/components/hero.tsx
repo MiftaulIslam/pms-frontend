@@ -1,0 +1,117 @@
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Play } from "lucide-react";
+import heroImage from "/hero-image.jpg";
+import { useNotifications } from "@/hooks/use-notifications";
+// import { useNotifications } from "@/hooks/use-notifications";
+
+
+const Hero = () => {
+  const { addNotification } = useNotifications()
+
+  const freeTrialHandler = () => {
+    addNotification({
+      type: "success",
+      title: "Free Trial Started",
+      message: "You have successfully started your free trial!",
+      length: 5000,
+    });
+  }
+  return (
+    <section className="relative flex justify-center items-center min-h-screen overflow-hidden">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-hero opacity-10" />
+
+      {/* Content */}
+      <div className="z-10 relative mx-auto px-6 py-20 container">
+        <div className="items-center gap-12 grid lg:grid-cols-2">
+          {/* Left Content */}
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <div className="inline-flex items-center bg-primary/10 px-4 py-2 border border-primary/20 rounded-full font-medium text-primary text-sm">
+                ✨ New: AI-powered task automation
+              </div>
+
+              <h1 className="font-bold text-foreground text-5xl lg:text-6xl leading-tight">
+                Manage Projects
+                <span className="block bg-clip-text bg-gradient-to-r  from-primary to-primary-foreground  text-transparent">
+                  Like Never Before
+                </span>
+              </h1>
+
+              <p className="max-w-lg text-muted-foreground text-xl leading-relaxed">
+                Streamline your workflow with our powerful project management platform.
+                Built for teams that want to move fast and stay organized.
+              </p>
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="flex sm:flex-row flex-col gap-4">
+              <Button variant="default" onClick={freeTrialHandler} size="lg" className="group">
+                Start Free Trial
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </Button>
+
+              <Button variant="outline" size="lg" className="group">
+                <Play className="w-4 h-4" />
+                Watch Demo
+              </Button>
+            </div>
+
+            {/* Social Proof */}
+            <div className="flex items-center space-x-8 pt-8">
+              <div>
+                <div className="font-bold text-foreground text-2xl">10k+</div>
+                <div className="text-muted-foreground text-sm">Active Teams</div>
+              </div>
+              <div>
+                <div className="font-bold text-foreground text-2xl">99.9%</div>
+                <div className="text-muted-foreground text-sm">Uptime</div>
+              </div>
+              <div>
+                <div className="font-bold text-foreground text-2xl">24/7</div>
+                <div className="text-muted-foreground text-sm">Support</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Content - Hero Image */}
+          <div className="hidden lg:block relative">
+            <div className="relative">
+              {/* Glow effect */}
+              <div className="absolute -inset-4 bg-gradient-primary opacity-20 blur-2xl rounded-3xl" />
+
+              {/* Main image container */}
+              <div className="relative bg-gradient-card shadow-card p-2 rounded-2xl">
+                <img
+                  src={heroImage}
+                  alt="Project Management Dashboard"
+                  className="shadow-elegant rounded-xl w-full h-auto"
+                />
+              </div>
+
+              {/* Floating elements */}
+              <div className="-top-4 -right-4 absolute bg-gradient-primary shadow-glow p-4 rounded-xl animate-bounce">
+                <div className="font-semibold text-primary-foreground text-sm bg-primary p-3 rounded-lg">
+                  Task Completed!
+                </div>
+              </div>
+
+              <div className="-bottom-4 -left-4 absolute bg-card shadow-card p-4 border border-border rounded-xl">
+                <div className="font-semibold text-foreground text-sm">
+                  Team Productivity
+                </div>
+                <div className="font-bold text-primary text-lg">+185%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Decorative elements */}
+      <div className="top-20 left-10 absolute bg-primary/10 blur-xl rounded-full w-20 h-20" />
+      <div className="right-10 bottom-20 absolute bg-accent/10 blur-xl rounded-full w-32 h-32" />
+    </section>
+  );
+};
+
+export default Hero;
