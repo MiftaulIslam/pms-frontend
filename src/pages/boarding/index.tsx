@@ -5,6 +5,7 @@ import { Step3HeardFrom } from './steps/step3-heard-from';
 import { Step4Interests } from './steps/step4-interests';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import { useAuth } from '@/pages/auth/context/use-auth';
 
 const steps = [
   { component: Step1Name, title: 'Name' },
@@ -14,6 +15,9 @@ const steps = [
 ];
 
 const BoardingContent = () => {
+  
+  const {user, loading} = useAuth()
+  console.log({userName: user?.name, loading})
   const { currentStep, boardingData } = useBoardingContext();
   const navigate = useNavigate();
   const CurrentStepComponent = steps[currentStep]?.component;

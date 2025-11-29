@@ -2,28 +2,33 @@
 
 import { createBrowserRouter } from "react-router-dom";
 import Landing from "../pages/landing/landing";
-import SignInPage from "@/pages/sign-in/sign-in";
 import NotFound from "@/pages/not-found";
 import DashboardLayout from "@/layout/dashboard-layout";
 import Kanbanv2 from "@/pages/kanbanv2";
 import Boarding from "@/pages/boarding";
+import AuthPage from "@/pages/auth/auth";
+import OAuthSuccess from "@/pages/auth/auth-callback";
+import { ProtectedRoute } from "@/components/protected-route";
 const router = createBrowserRouter([
     {
         path: "/",
         element: <Landing />,
     },
-
     {
-        path: "/signin",
-        element: <SignInPage />,
+        path: "/auth",
+        element: <AuthPage />,
+    },
+    {
+        path: "/auth/success",
+        element: <OAuthSuccess />,
     },
     {
         path: "/boarding",
-        element: <Boarding />,
+        element: <ProtectedRoute><Boarding /></ProtectedRoute>,
     },
     {
-        path: "/dashboard/:id",
-        element: <DashboardLayout />,
+        path: "/dashboard",
+        element: <ProtectedRoute><DashboardLayout /></ProtectedRoute>,
         children: [
 
             {

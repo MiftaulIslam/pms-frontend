@@ -27,18 +27,15 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import type { User } from "@/types/auth"
 
 export function NavUser({
   user,
 }: {
-  user: {
-    name: string
-    email: string
-    avatar: string
-  }
+  user: User;
 }) {
   const { isMobile } = useSidebar()
-
+  console.log("avatar", `${import.meta.env.VITE_BACKEND_API}${user.avatar}`)
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -49,7 +46,7 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage src={`${import.meta.env.VITE_BACKEND_API}${user.avatar}`} alt={user.name} />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
