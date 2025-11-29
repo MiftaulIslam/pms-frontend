@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useState } from 'react';
 import { Check } from 'lucide-react';
-import { useBoardingContext } from '../boarding-context';
+import { useBoardingContext } from '../context/boarding-context';
 import { Button } from '@/components/ui/button';
 
 const step4Schema = z.object({

@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useBoardingContext } from '../boarding-context';
+import { useBoardingContext } from '../context/boarding-context';
 import { Button } from '@/components/ui/button';
 
 const step3Schema = z.object({

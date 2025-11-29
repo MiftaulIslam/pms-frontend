@@ -1,11 +1,14 @@
-import { BoardingProvider, useBoardingContext } from './boarding-context';
+import { BoardingProvider, useBoardingContext } from './context/boarding-context';
 import { Step1Name } from './steps/step1-name';
 import { Step2Avatar } from './steps/step2-avatar';
 import { Step3HeardFrom } from './steps/step3-heard-from';
 import { Step4Interests } from './steps/step4-interests';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/pages/auth/context/use-auth';
+import { completeBoarding } from './api/boarding-api';
+import { Button } from '@/components/ui/button';
+import { emojiToImageFile } from './utils/emoji-to-image';
 
 const steps = [
   { component: Step1Name, title: 'Name' },
@@ -15,22 +18,69 @@ const steps = [
 ];
 
 const BoardingContent = () => {
-  
-  const {user, loading} = useAuth()
-  console.log({userName: user?.name, loading})
+  const { user, loading, fetchCurrentUser } = useAuth();
+  console.log({ userName: user?.name, loading });
   const { currentStep, boardingData } = useBoardingContext();
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const CurrentStepComponent = steps[currentStep]?.component;
 
+  const completeBoardingProcess = useCallback(async () => {
+    try {
+      setIsSubmitting(true);
+      const formData = new FormData();
+      formData.append('name', boardingData.name || '');
+      formData.append('heardAboutUs', boardingData.heardFrom || '');
+      
+      // Add interests as array
+      if (boardingData.interests) {
+        boardingData.interests.forEach((interest) => {
+          formData.append('interestIn', interest);
+        });
+      }
+      
+      // Add avatar file if it exists (custom upload)
+      if (boardingData.avatarFile) {
+        formData.append('avatar', boardingData.avatarFile);
+      } else if (boardingData.avatar && boardingData.avatar !== 'custom') {
+        // For emoji avatars, convert to image file first
+        try {
+          const emojiImageFile = await emojiToImageFile(boardingData.avatar);
+          formData.append('avatar', emojiImageFile);
+        } catch (error) {
+          console.error('Failed to convert emoji to image:', error);
+          // Fallback: send as string if conversion fails
+          formData.append('avatar', boardingData.avatar);
+        }
+      }
+      
+      await completeBoarding(formData);
+      await fetchCurrentUser(); // Refresh user data to get updated avatar
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Boarding completion failed:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [boardingData, navigate, fetchCurrentUser]);
+
+  const skipBoarding = () => {
+    navigate('/dashboard');
+  };
+
   useEffect(() => {
-    // When all steps are completed, navigate to dashboard or home
+    // Redirect if user is already onboarded
+    if (user?.onboarded) {
+      navigate('/dashboard');
+      return;
+    }
+    
+    // When all steps are completed, call the API to complete boarding
     if (currentStep >= steps.length) {
       console.log('Boarding completed with data:', boardingData);
-      // You can save the data to your backend here
-      // For now, navigate to home or dashboard
-      navigate('/');
+      completeBoardingProcess();
     }
-  }, [currentStep, boardingData, navigate]);
+  }, [currentStep, boardingData, completeBoardingProcess, user, navigate]);
 
   if (!CurrentStepComponent) {
     return null;
@@ -76,6 +126,19 @@ const BoardingContent = () => {
       {/* Current step content */}
       <div className="w-full">
         <CurrentStepComponent />
+      </div>
+
+      {/* Skip for now button */}
+      <div className="mt-4">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={skipBoarding}
+          disabled={isSubmitting}
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          Skip for now
+        </Button>
       </div>
 
       {/* Step counter */}

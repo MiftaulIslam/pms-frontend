@@ -1,7 +1,17 @@
-"use client"
-
 import * as React from "react"
 import { ChevronsUpDown, Plus } from "lucide-react"
+
+interface Team {
+  name: string
+  logo: React.ElementType | string
+  id: string
+}
+
+interface TeamSwitcherProps {
+  teams: Team[]
+  onWorkspaceSwitch?: (workspaceId: string) => void
+  currentWorkspaceId?: string
+}
 
 import {
   DropdownMenu,
@@ -21,17 +31,20 @@ import {
 
 export function TeamSwitcher({
   teams,
-}: {
-  teams: {
-    name: string
-    logo: React.ElementType
-    plan: string
-  }[]
-}) {
+  onWorkspaceSwitch,
+  currentWorkspaceId,
+}: TeamSwitcherProps) {
   const { isMobile } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState(teams[0])
+  
+  // Find the active team based on currentWorkspaceId
+  const activeTeam = React.useMemo(() => {
+    if (currentWorkspaceId) {
+      return teams.find(team => team.id === currentWorkspaceId) || teams[0]
+    }
+    return teams[0]
+  }, [teams, currentWorkspaceId])
 
-  if (!activeTeam) {
+  if (!activeTeam || teams.length === 0) {
     return null
   }
 
@@ -44,12 +57,15 @@ export function TeamSwitcher({
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                <activeTeam.logo className="size-4" />
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
+                {typeof activeTeam.logo === 'string' ? (
+                  <img src={activeTeam.logo} alt={activeTeam.name} className="size-6 rounded" />
+                ) : (
+                  <activeTeam.logo className="size-6" />
+                )}
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{activeTeam.name}</span>
-                <span className="truncate text-xs">{activeTeam.plan}</span>
               </div>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
@@ -66,11 +82,17 @@ export function TeamSwitcher({
             {teams.map((team, index) => (
               <DropdownMenuItem
                 key={team.name}
-                onClick={() => setActiveTeam(team)}
+                onClick={() => {
+                  onWorkspaceSwitch?.(team.id)
+                }}
                 className="gap-2 p-2"
               >
                 <div className="flex size-6 items-center justify-center rounded-md border">
-                  <team.logo className="size-3.5 shrink-0" />
+                  {typeof team.logo === 'string' ? (
+                    <img src={team.logo} alt={team.name} className="size-3.5 shrink-0 rounded" />
+                  ) : (
+                    <team.logo className="size-3.5 shrink-0" />
+                  )}
                 </div>
                 {team.name}
                 <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>

@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 export interface BoardingData {
   name: string;
   avatar: string;
+  avatarFile?: File;
   heardFrom: string;
   interests: string[];
 }
@@ -17,6 +18,7 @@ interface BoardingContextType {
   prevStep: () => void;
   resetBoarding: () => void;
 }
+
 
 const BoardingContext = createContext<BoardingContextType | undefined>(undefined);
 
@@ -38,7 +40,7 @@ export const BoardingProvider = ({ children }: BoardingProviderProps) => {
   const [boardingData, setBoardingData] = useState<Partial<BoardingData>>({});
 
   const updateBoardingData = (data: Partial<BoardingData>) => {
-    setBoardingData((prev) => ({ ...prev, ...data }));
+    setBoardingData((prev: Partial<BoardingData>) => ({ ...prev, ...data }));
   };
 
   const nextStep = () => {
