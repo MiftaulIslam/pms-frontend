@@ -182,7 +182,9 @@ function transformFoldersToNavItems(folders: PlaygroundFolder[]): NavItem[] {
       ...transformFoldersToNavItems(folder.childFolders),
       ...folder.items.map((item) => ({
         title: item.name,
-        url: `#item-${item.id}`,
+        url: item.type === 'list' ? `/dashboard/list/${item.id}` : item.type === 'doc' ? `/dashboard/doc/${item.id}` : item.type === 'whiteboard' ? `/dashboard/whiteboard/${item.id}` : `#item-${item.id}`,
+        itemId: item.id,
+        itemType: item.type,
       })),
     ],
   }));
@@ -220,7 +222,9 @@ function transformCollectionsToProjects(collections: PlaygroundCollection[]) {
       ...transformFoldersToNavItems(collection.folders),
       ...collection.items.map((item) => ({
         title: item.name,
-        url: `#item-${item.id}`,
+        url: item.type === 'list' ? `/dashboard/list/${item.id}` : item.type === 'doc' ? `/dashboard/doc/${item.id}` : item.type === 'whiteboard' ? `/dashboard/whiteboard/${item.id}` : `#item-${item.id}`,
+        itemId: item.id,
+        itemType: item.type,
       })),
     ];
 

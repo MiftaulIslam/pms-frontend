@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Plus, List as ListIcon, LayoutGrid, Search, EyeOff, Settings, ChevronDown } from "lucide-react";
 import { useRef, useState } from "react";
 import { useDragAndDrop } from "@/hooks/use-drag-and-drop";
-import { useKanban, KanbanProvider } from "./context/kanban-context";
+import { useKanban, KanbanProvider } from "./context/kanban-context-api";
+import { useKanbanItemId } from "./hooks/use-kanban-item";
 import { useCallback } from "react";
 import type { DragItem } from "@/hooks/use-drag-and-drop";
 import { useEffect } from "react";
@@ -15,7 +16,7 @@ import CustomizePanel from "./components/kanban-customization/customize-panel";
 import ColumnDndSheet from "./components/kanban-customization/column-dnd-sheet";
 
 const Kanbanv2Content = () => {
-  const { columns, moveCard: moveCardAction } = useKanban();
+  const { columns, moveCard: moveCardAction, isLoading } = useKanban();
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   // Initialize tab from query (?list=true -> list, otherwise board)
   const getTabFromQuery = (): "list" | "board" => {
@@ -192,7 +193,11 @@ const Kanbanv2Content = () => {
           </CustomizePanel>
 
           <div className="w-full h-full">
-            {activeTab === "board" ? (
+            {isLoading ? (
+              <div className="flex items-center justify-center h-96">
+                <div className="text-muted-foreground">Loading board...</div>
+              </div>
+            ) : activeTab === "board" ? (
               <div
                 ref={boardRef}
                 className="flex items-start gap-6 p-6 overflow-x-auto h-full"
@@ -254,8 +259,10 @@ const Kanbanv2Content = () => {
 };
 
 const Kanbanv2 = () => {
+  const itemId = useKanbanItemId();
+  
   return (
-    <KanbanProvider>
+    <KanbanProvider itemId={itemId}>
       <Kanbanv2Content />
     </KanbanProvider>
   );

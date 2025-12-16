@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { CheckCircle2, Circle, Plus, X, CalendarDays, Link2 } from 'lucide-react'
-import { useKanban } from '../context/kanban-context'
+import { useKanban } from '../context'
 import { priorityColorClass } from '@/pages/kanbanv2/components/kanban-list/priority'
 import { cn } from '@/lib/utils'
 import type { Task } from '@/pages/kanbanv2/types'

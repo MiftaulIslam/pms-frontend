@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Calendar, Check, Flag, Trash2, Users } from "lucide-react";
 import { PRIORITY_COLOR } from "./priority";
-import { useKanban } from "../../context/kanban-context";
+import { useKanban } from "../../context";
 
 export interface KanbanListComposerProps {
   //   title: string;

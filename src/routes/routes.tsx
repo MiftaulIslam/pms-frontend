@@ -30,11 +30,24 @@ const router = createBrowserRouter([
         path: "/dashboard",
         element: <ProtectedRoute><DashboardLayout /></ProtectedRoute>,
         children: [
-
             {
                 path: "",
                 // element: <Kanban />
                 element: <Kanbanv2 />
+            },
+            {
+                path: "list/:id",
+                element: <Kanbanv2 />
+            },
+            {
+                path: "doc/:id",
+                // TODO: Add document component when ready
+                element: <div>Document view - Coming soon</div>
+            },
+            {
+                path: "whiteboard/:id",
+                // TODO: Add whiteboard component when ready
+                element: <div>Whiteboard view - Coming soon</div>
             },
         ]
     },

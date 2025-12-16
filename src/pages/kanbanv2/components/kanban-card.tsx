@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import type { DragItem } from "@/hooks/use-drag-and-drop";
 import { CheckCircle2, ChevronDown, Link2, Plus } from "lucide-react";
 import { useState } from "react";
-import { useKanban } from "../context/kanban-context";
+import { useKanban } from "../context";
 import SubtaskItem from "./subtask-item";
 import type { Task, Priority } from "@/pages/kanbanv2/types";
 

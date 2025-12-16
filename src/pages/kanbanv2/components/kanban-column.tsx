@@ -7,7 +7,7 @@ import { useState } from "react";
 import { Settings, Plus, Check, Trash2 } from "lucide-react";
 import { KanbanCard } from "./kanban-card";
 import { type DragItem } from "@/hooks/use-drag-and-drop";
-import { useKanban } from "../context/kanban-context";
+import { useKanban } from "../context";
 import DropIndicator from "./drop-indicator";
 import type { KanbanColumnData } from "@/pages/kanbanv2/types";
 

@@ -1,9 +1,12 @@
 import { ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem } from "./ui/sidebar";
 export type NavItem = {
   title: string
   url: string
+  itemId?: string
+  itemType?: 'list' | 'doc' | 'whiteboard'
   items?: NavItem[]
 }
 
@@ -34,9 +37,15 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
               </>
             ) : (
               <SidebarMenuSubButton asChild>
-                <a href={item.url}>
-                  <span>{item.title}</span>
-                </a>
+                {item.itemType === 'list' && item.itemId ? (
+                  <Link to={`list/${item.itemId}`}>
+                    <span>{item.title}</span>
+                  </Link>
+                ) : (
+                  <a href={item.url}>
+                    <span>{item.title}</span>
+                  </a>
+                )}
               </SidebarMenuSubButton>
             )}
           </SidebarMenuSubItem>

@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react'
-import { useKanban } from '../../context/kanban-context'
+import { useKanban } from '../../context'
 import { useDragAndDrop } from '@/hooks/use-drag-and-drop'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
