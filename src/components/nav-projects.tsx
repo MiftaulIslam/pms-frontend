@@ -5,6 +5,7 @@ import {
   Folder,
   Forward,
   MoreHorizontal,
+  Plus,
   Trash2,
   type LucideIcon,
 } from "lucide-react"
@@ -138,7 +139,29 @@ export function NavProjects({
                     </Tooltip>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <SidebarMenuAction>
+                        <SidebarMenuAction >
+                          <Plus />
+                          <span className="sr-only">Add</span>
+                        </SidebarMenuAction>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        className="w-48 rounded-lg"
+                        side={isMobile ? "bottom" : "right"}
+                        align={isMobile ? "end" : "start"}
+                      >
+                        <DropdownMenuItem>
+                          <Folder className="text-muted-foreground" />
+                          <span>Add Folder</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Forward className="text-muted-foreground" />
+                          <span>Add Item</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <SidebarMenuAction className="right-8">
                           <MoreHorizontal />
                           <span className="sr-only">More</span>
                         </SidebarMenuAction>
@@ -167,7 +190,7 @@ export function NavProjects({
                 </CollapsibleTrigger>
                 {item.items && item.items.length > 0 && (
                   <CollapsibleContent>
-                    <SidebarMenuSub>
+                    <SidebarMenuSub className="m-0 p-0! relative left-0.5">
                       <NestedMenuItems items={item.items} />
                     </SidebarMenuSub>
                   </CollapsibleContent>

@@ -1,9 +1,10 @@
-import { ChevronRight, type LucideIcon } from "lucide-react";
+import { ChevronRight, MoreHorizontal, Plus, type LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
-import { SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem } from "./ui/sidebar";
+import { SidebarMenuAction, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, useSidebar } from "./ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
-export type NavItem = {
+import { DropdownMenu, DropdownMenuSeparator, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+    export type NavItem = {
   title: string
   url: string
   itemId?: string
@@ -14,6 +15,7 @@ export type NavItem = {
 
 export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?: number }) {
   console.log("items", items)
+  const { isMobile } = useSidebar();
   return (
     <>
       {items.map((item) => {
@@ -31,7 +33,7 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
                 <>
                   <CollapsibleTrigger asChild className="p-2!">
                     <SidebarMenuSubButton
-                      className="group/menu-sub-item"
+                      className="group/menu-sub-item "
                     >
                       {/* ICON */}
                       <span className="relative flex h-4 w-4 items-center justify-center">
@@ -67,7 +69,35 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
                       </Tooltip>
                       <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible-sub:rotate-90" />
                     </SidebarMenuSubButton> */}
+                    
                   </CollapsibleTrigger>
+                  <div className="ml-auto flex items-center gap-1">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuAction className="right-[7px]">
+              <Plus />
+            </SidebarMenuAction>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side={isMobile ? "bottom" : "right"}>
+            <DropdownMenuItem>Add Folder</DropdownMenuItem>
+            <DropdownMenuItem>Add Item</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuAction className="right-[2.2rem]">
+              <MoreHorizontal />
+            </SidebarMenuAction>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side={isMobile ? "bottom" : "right"}>
+            <DropdownMenuItem>View</DropdownMenuItem>
+            <DropdownMenuItem>Share</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Delete</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
                   <CollapsibleContent >
                     <SidebarMenuSub className="m-0 p-0">
                       <NestedMenuItems items={item.items} level={level + 1} />
