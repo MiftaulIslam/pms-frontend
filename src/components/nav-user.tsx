@@ -35,7 +35,6 @@ export function NavUser({
   user: User;
 }) {
   const { isMobile } = useSidebar()
-  console.log("avatar", `${import.meta.env.VITE_BACKEND_API}${user?.avatar}`)
   return (
     <SidebarMenu>
       <SidebarMenuItem>

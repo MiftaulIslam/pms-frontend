@@ -8,6 +8,10 @@ import {
   Settings2,
   SquareTerminal,
   Loader2,
+  Folder,
+  FileText,
+  Paintbrush,
+  LayoutDashboard,
 } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 
@@ -125,7 +129,7 @@ const navMain = [
  * Helper function to get icon component based on iconType and icon value
  * Returns a LucideIcon component or a wrapper that renders emoji/image
  */
-function getIconComponent(iconType: IconType | null, icon: string | null, defaultIcon: LucideIcon): LucideIcon {
+export function getIconComponent(iconType: IconType | null, icon: string | null, defaultIcon: LucideIcon): LucideIcon {
   if (iconType === 'emoji' && icon) {
     // For emoji, create a wrapper component that renders emoji in SVG foreignObject
     const EmojiIcon = React.forwardRef<SVGSVGElement, React.ComponentProps<typeof defaultIcon>>(
@@ -175,19 +179,37 @@ function getIconComponent(iconType: IconType | null, icon: string | null, defaul
  * Transforms folders and items to NavItem format recursively
  */
 function transformFoldersToNavItems(folders: PlaygroundFolder[]): NavItem[] {
-  return folders.map((folder) => ({
-    title: folder.name,
-    url: `#folder-${folder.id}`,
-    items: [
-      ...transformFoldersToNavItems(folder.childFolders),
-      ...folder.items.map((item) => ({
-        title: item.name,
-        url: item.type === 'list' ? `/dashboard/list/${item.id}` : item.type === 'doc' ? `/dashboard/doc/${item.id}` : item.type === 'whiteboard' ? `/dashboard/whiteboard/${item.id}` : `#item-${item.id}`,
-        itemId: item.id,
-        itemType: item.type,
-      })),
-    ],
-  }));
+  return folders.map((folder) => {
+    // Get default icon for folder
+    const folderDefaultIcon = Folder;
+    const folderIcon = getCachedIconComponent(folder.iconType, folder.icon, folderDefaultIcon);
+    
+    return {
+      title: folder.name,
+      url: `#folder-${folder.id}`,
+      icon: folderIcon,
+      items: [
+        ...transformFoldersToNavItems(folder.childFolders),
+        ...folder.items.map((item) => {
+          // Get default icon based on item type
+          let itemDefaultIcon: LucideIcon = Frame;
+          if (item.type === 'list') itemDefaultIcon = LayoutDashboard;
+          else if (item.type === 'doc') itemDefaultIcon = FileText;
+          else if (item.type === 'whiteboard') itemDefaultIcon = Paintbrush;
+          
+          const itemIcon = getCachedIconComponent(item.iconType, item.icon, itemDefaultIcon);
+          
+          return {
+            title: item.name,
+            url: item.type === 'list' ? `/dashboard/list/${item.id}` : item.type === 'doc' ? `/dashboard/doc/${item.id}` : item.type === 'whiteboard' ? `/dashboard/whiteboard/${item.id}` : `#item-${item.id}`,
+            itemId: item.id,
+            itemType: item.type,
+            icon: itemIcon,
+          };
+        }),
+      ],
+    };
+  });
 }
 
 /**
@@ -220,12 +242,23 @@ function transformCollectionsToProjects(collections: PlaygroundCollection[]) {
     // Transform folders and items to NavItem format
     const navItems: NavItem[] = [
       ...transformFoldersToNavItems(collection.folders),
-      ...collection.items.map((item) => ({
-        title: item.name,
-        url: item.type === 'list' ? `/dashboard/list/${item.id}` : item.type === 'doc' ? `/dashboard/doc/${item.id}` : item.type === 'whiteboard' ? `/dashboard/whiteboard/${item.id}` : `#item-${item.id}`,
-        itemId: item.id,
-        itemType: item.type,
-      })),
+      ...collection.items.map((item) => {
+        // Get default icon based on item type
+        let itemDefaultIcon: LucideIcon = Frame;
+        if (item.type === 'list') itemDefaultIcon = LayoutDashboard;
+        else if (item.type === 'doc') itemDefaultIcon = FileText;
+        else if (item.type === 'whiteboard') itemDefaultIcon = Paintbrush;
+        
+        const itemIcon = getCachedIconComponent(item.iconType, item.icon, itemDefaultIcon);
+        
+        return {
+          title: item.name,
+          url: item.type === 'list' ? `/dashboard/list/${item.id}` : item.type === 'doc' ? `/dashboard/doc/${item.id}` : item.type === 'whiteboard' ? `/dashboard/whiteboard/${item.id}` : `#item-${item.id}`,
+          itemId: item.id,
+          itemType: item.type,
+          icon: itemIcon,
+        };
+      }),
     ];
 
     return {
@@ -241,7 +274,7 @@ function transformCollectionsToProjects(collections: PlaygroundCollection[]) {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth()
   const { setCurrentWorkspaceId, workspaces, setWorkspaces, currentWorkspaceId } = useWorkspace()
-  console.log("current workspacesID", currentWorkspaceId)
+
   
   // Fetch workspaces with tanStack Query
   const { data: workspacesData, isLoading } = useQuery({
@@ -256,8 +289,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   
   // Debug logging
   React.useEffect(() => {
-    console.log('Collections data:', collections);
-    console.log('Is loading collections:', isLoadingCollections);
   }, [collections, isLoadingCollections])
 
   // Handle workspace selection logic

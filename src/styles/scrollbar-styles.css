@@ -1,27 +1,26 @@
 @layer utilities {
   ::-webkit-scrollbar {
-    width: 0.8rem;
+    width: 6px;
+    height: 6px;
   }
   
   ::-webkit-scrollbar-track {
-    background: hsl(var(--muted));
-    border-radius: var(--radius);
+    background: transparent;
+    border-radius: 3px;
   }
   
   ::-webkit-scrollbar-thumb {
-    background: var(--gradient-primary);
-    border-radius: var(--radius);
-    border: 2px solid hsl(var(--muted));
-    transition: var(--transition-bounce);
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 3px;
+    transition: background 0.2s ease;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--gradient-hero);
-    box-shadow: var(--shadow-glow);
+    background: hsl(var(--muted-foreground) / 0.5);
   }
   
   * {
     scrollbar-width: thin;
-    scrollbar-color: hsl(var(--primary)) hsl(var(--muted));
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
   }
 }
