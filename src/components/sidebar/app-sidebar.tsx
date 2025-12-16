@@ -5,8 +5,6 @@ import {
   Bot,
   Frame,
   GalleryVerticalEnd,
-  Map,
-  PieChart,
   Settings2,
   SquareTerminal,
   Loader2,
@@ -25,9 +23,14 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { useAuth } from "@/pages/auth/context/use-auth"
-import { getMyWorkspaces, WORKSPACE_APIS } from "./api/sidebar-api"
+import { getMyWorkspaces, WORKSPACE_APIS } from "./api/workspace-api"
 import type { Workspace } from "./types/sidebar-types"
-import { useWorkspace } from "./contexts/use-workspace"
+import { useWorkspace } from "@/components/sidebar/contexts/workspace-context/use-workspace"
+import { useCollections } from "./hooks/use-collections"
+import type { PlaygroundCollection, PlaygroundFolder } from "./types/playground-types"
+import type { IconType } from "./types/playground-types"
+import type { NavItem } from "@/components/nested-menu-items"
+import type { LucideIcon } from "lucide-react"
 
 // Static navigation data
 const navMain = [
@@ -118,46 +121,123 @@ const navMain = [
   },
 ];
 
-const projects = [
-  {
-    title: "Design Engineering",
-    url: "#",
-    icon: Frame,
-    isActive: true,
+/**
+ * Helper function to get icon component based on iconType and icon value
+ * Returns a LucideIcon component or a wrapper that renders emoji/image
+ */
+function getIconComponent(iconType: IconType | null, icon: string | null, defaultIcon: LucideIcon): LucideIcon {
+  if (iconType === 'emoji' && icon) {
+    // For emoji, create a wrapper component that renders emoji in SVG foreignObject
+    const EmojiIcon = React.forwardRef<SVGSVGElement, React.ComponentProps<typeof defaultIcon>>(
+      (props, ref) => {
+        const IconComponent = defaultIcon;
+        return (
+          <IconComponent {...props} ref={ref}>
+            <foreignObject x="0" y="0" width="16" height="16">
+              <div className="flex items-center justify-center w-full h-full text-sm">{icon}</div>
+            </foreignObject>
+          </IconComponent>
+        );
+      }
+    );
+    EmojiIcon.displayName = 'EmojiIcon';
+    return EmojiIcon as LucideIcon;
+  }
+  if (iconType === "image" && icon) {
+    // For image, create a wrapper that renders the image
+    const imageUrl = icon.startsWith('http') ? icon : `${import.meta.env.VITE_BACKEND_API}${icon}`;
+    const ImageIcon = React.forwardRef<SVGSVGElement, React.ComponentProps<typeof defaultIcon>>(
+      (props, ref) => {
+        const IconComponent = defaultIcon;
+        return (
+          <IconComponent {...props} ref={ref}>
+            <foreignObject x="0" y="0" width="16" height="16">
+              <img 
+                src={imageUrl} 
+                alt="" 
+                className="w-4 h-4 object-contain"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </foreignObject>
+          </IconComponent>
+        );
+      }
+    );
+    ImageIcon.displayName = 'ImageIcon';
+    return ImageIcon as LucideIcon;
+  }
+  return defaultIcon;
+}
+
+/**
+ * Transforms folders and items to NavItem format recursively
+ */
+function transformFoldersToNavItems(folders: PlaygroundFolder[]): NavItem[] {
+  return folders.map((folder) => ({
+    title: folder.name,
+    url: `#folder-${folder.id}`,
     items: [
-      {
-        title: "General",
-        url: "#",
-      },
-      {
-        title: "Team",
-        url: "#",
-      },
-      {
-        title: "Billing",
-        url: "#",
-      },
-      {
-        title: "Limits",
-        url: "#",
-      },
+      ...transformFoldersToNavItems(folder.childFolders),
+      ...folder.items.map((item) => ({
+        title: item.name,
+        url: `#item-${item.id}`,
+      })),
     ],
-  },
-  {
-    title: "Sales & Marketing",
-    url: "#",
-    icon: PieChart,
-  },
-  {
-    title: "Travel",
-    url: "#",
-    icon: Map,
-  },
-];
+  }));
+}
+
+/**
+ * Memoized icon component cache to avoid recreating components
+ */
+const iconComponentCache = new Map<string, LucideIcon>();
+
+/**
+ * Gets or creates an icon component with caching
+ */
+function getCachedIconComponent(iconType: IconType | null, icon: string | null, defaultIcon: LucideIcon): LucideIcon {
+  const cacheKey = `${iconType || 'default'}-${icon || 'default'}`;
+  
+  if (iconComponentCache.has(cacheKey)) {
+    return iconComponentCache.get(cacheKey)!;
+  }
+  
+  const iconComponent = getIconComponent(iconType, icon, defaultIcon);
+  iconComponentCache.set(cacheKey, iconComponent);
+  return iconComponent;
+}
+
+/**
+ * Transforms collections to projects format for NavProjects component
+ */
+function transformCollectionsToProjects(collections: PlaygroundCollection[]) {
+  return collections.map((collection) => {
+    const IconComponent = getCachedIconComponent(collection.iconType, collection.icon, Frame);
+    
+    // Transform folders and items to NavItem format
+    const navItems: NavItem[] = [
+      ...transformFoldersToNavItems(collection.folders),
+      ...collection.items.map((item) => ({
+        title: item.name,
+        url: `#item-${item.id}`,
+      })),
+    ];
+
+    return {
+      title: collection.name,
+      url: `#collection-${collection.id}`,
+      icon: IconComponent,
+      isActive: false,
+      items: navItems.length > 0 ? navItems : undefined,
+    };
+  });
+}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth()
   const { setCurrentWorkspaceId, workspaces, setWorkspaces, currentWorkspaceId } = useWorkspace()
+  console.log("current workspacesID", currentWorkspaceId)
   
   // Fetch workspaces with tanStack Query
   const { data: workspacesData, isLoading } = useQuery({
@@ -166,6 +246,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (gcTime replaced cacheTime)
   })
+
+  // Fetch collections for the current workspace
+  const { collections, isLoading: isLoadingCollections } = useCollections()
+  
+  // Debug logging
+  React.useEffect(() => {
+    console.log('Collections data:', collections);
+    console.log('Is loading collections:', isLoadingCollections);
+  }, [collections, isLoadingCollections])
 
   // Handle workspace selection logic
   React.useEffect(() => {
@@ -184,19 +273,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }
   }, [workspacesData, user?.lastWorkspaceId, setCurrentWorkspaceId, setWorkspaces])
 
-  // Show loading spinner while fetching workspaces
-  if (isLoading) {
-    return (
-      <Sidebar {...props}>
-        <div className="flex h-full items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin" />
-        </div>
-      </Sidebar>
-    )
-  }
-
   // Handle workspace switching
-  const handleWorkspaceSwitch = async (workspaceId: string) => {
+  const handleWorkspaceSwitch = React.useCallback(async (workspaceId: string) => {
     try {
       const accessToken = localStorage.getItem("access_token");
       
@@ -218,14 +296,35 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     } catch (error) {
       console.error('Failed to switch workspace:', error);
     }
-  };
+  }, [setCurrentWorkspaceId]);
   
   // Transform workspaces for TeamSwitcher component
-  const teams = workspaces?.map((workspace: Workspace) => ({
-    name: workspace.name,
-    logo: workspace.logo ? `${import.meta.env.VITE_BACKEND_API}${workspace.logo}` : GalleryVerticalEnd,
-    id: workspace.id,
-  })) || []
+  const teams = React.useMemo(() => {
+    return workspaces?.map((workspace: Workspace) => ({
+      name: workspace.name,
+      logo: workspace.logo ? `${import.meta.env.VITE_BACKEND_API}${workspace.logo}` : GalleryVerticalEnd,
+      id: workspace.id,
+    })) || []
+  }, [workspaces])
+
+  // Transform collections to projects format
+  const projectsData = React.useMemo(() => {
+    if (!collections || !Array.isArray(collections) || collections.length === 0) {
+      return [];
+    }
+    return transformCollectionsToProjects(collections);
+  }, [collections])
+
+  // Show loading spinner while fetching workspaces
+  if (isLoading) {
+    return (
+      <Sidebar {...props}>
+        <div className="flex h-full items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin" />
+        </div>
+      </Sidebar>
+    )
+  }
   
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -238,7 +337,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navMain} />
-        <NavProjects projects={projects} />
+        {isLoadingCollections ? (
+          <div className="flex items-center justify-center p-4">
+            <Loader2 className="h-4 w-4 animate-spin" />
+          </div>
+        ) : (
+          <NavProjects projects={projectsData} />
+        )}
       </SidebarContent>
       <SidebarFooter>
         {user && <NavUser user={user} />}

@@ -1,5 +1,5 @@
 import * as React from "react"
-import type { WorkspaceContextType } from "../types/sidebar-types"
+import type { WorkspaceContextType } from "@/components/sidebar/types/sidebar-types"
 
 
 

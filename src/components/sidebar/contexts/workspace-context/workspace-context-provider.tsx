@@ -1,6 +1,6 @@
 import * as React from "react"
 import type { Workspace } from "@/components/sidebar/types/sidebar-types"
-import { WorkspaceContext } from "./workspace-context"
+import { WorkspaceContext } from "@/components/sidebar/contexts/workspace-context/workspace-context"
 
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     const [currentWorkspaceId, setCurrentWorkspaceId] = React.useState<string | null>(null)
