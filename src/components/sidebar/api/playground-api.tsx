@@ -62,5 +62,15 @@ export const COLLECTION_APIS = (ids:COLLECTION_API_IDS) => {
         REORDER_ITEM: `${import.meta.env.VITE_BACKEND_API}/playground/items/${ids.itemId}/reorder`, //(required authentication)
         // move an item
         MOVE_ITEM: `${import.meta.env.VITE_BACKEND_API}/playground/items/${ids.itemId}/move`, //(required authentication)
+        
+        // --------> Kanban APIs <--------
+        // get kanban board by itemId
+        GET_KANBAN_BOARD: `${import.meta.env.VITE_BACKEND_API}/playground/kanban/boards/${ids.itemId}`, //(required authentication)
+        // create a kanban column
+        CREATE_KANBAN_COLUMN: `${import.meta.env.VITE_BACKEND_API}/playground/kanban/columns`, //(required authentication)
+        // update a kanban column
+        UPDATE_KANBAN_COLUMN: `${import.meta.env.VITE_BACKEND_API}/playground/kanban/columns/${ids.itemId}`, //(required authentication) - uses itemId placeholder for columnId
+        // reorder a kanban column
+        REORDER_KANBAN_COLUMN: `${import.meta.env.VITE_BACKEND_API}/playground/kanban/columns/${ids.itemId}/reorder`, //(required authentication) - uses itemId placeholder for columnId
     }
 };

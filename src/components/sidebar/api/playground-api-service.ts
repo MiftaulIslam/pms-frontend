@@ -122,3 +122,94 @@ export async function getCollections(
   return response.data.map(transformCollection);
 }
 
+/**
+ * Creates a new folder
+ * @param data Folder creation data
+ * @returns Created folder
+ */
+export async function createFolder(data: {
+  collectionId?: string | null;
+  parentFolderId?: string | null;
+  name: string;
+  description?: string | null;
+}): Promise<BackendFolder> {
+  const response = await apiClient.post<BackendFolder>(
+    COLLECTION_APIS({}).CREATE_FOLDER,
+    data
+  );
+  return response.data;
+}
+
+/**
+ * Creates a new item (list/doc/whiteboard)
+ * @param data Item creation data
+ * @returns Created item
+ */
+export async function createItem(data: {
+  collectionId: string;
+  parentFolderId?: string | null;
+  name: string;
+  description?: string;
+  type: 'list' | 'doc' | 'whiteboard';
+  columns?: Array<{ title: string; position: number; color?: string | null }>;
+}): Promise<any> {
+  const response = await apiClient.post<any>(
+    COLLECTION_APIS({}).CREATE_ITEM,
+    data
+  );
+  return response.data;
+}
+
+/**
+ * Creates a kanban column
+ * @param data Column creation data
+ * @returns Created column
+ */
+export async function createKanbanColumn(data: {
+  kanbanBoardId: string;
+  title: string;
+  color?: string | null;
+}): Promise<any> {
+  const response = await apiClient.post<any>(
+    COLLECTION_APIS({}).CREATE_KANBAN_COLUMN,
+    data
+  );
+  return response.data;
+}
+
+/**
+ * Gets kanban board by itemId
+ * @param itemId Item ID
+ * @returns Kanban board with columns (raw backend response)
+ */
+export async function getKanbanBoardRaw(itemId: string): Promise<{
+  id: string;
+  itemId: string;
+  columns: Array<{
+    id: string;
+    kanbanBoardId: string;
+    title: string;
+    position: number;
+    color: string | null;
+  }>;
+}> {
+  const response = await apiClient.get<any>(
+    COLLECTION_APIS({ itemId }).GET_KANBAN_BOARD
+  );
+  return response.data;
+}
+
+/**
+ * Reorders a kanban column
+ * @param columnId Column ID
+ * @param position New position
+ * @returns Updated column
+ */
+export async function reorderKanbanColumn(columnId: string, position: number): Promise<any> {
+  const response = await apiClient.patch<any>(
+    COLLECTION_APIS({ itemId: columnId }).REORDER_KANBAN_COLUMN,
+    { position }
+  );
+  return response.data;
+}
+

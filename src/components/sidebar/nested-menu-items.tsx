@@ -1,9 +1,13 @@
 import { ChevronRight, MoreHorizontal, Plus, Folder, ClipboardList, FileText, File, Database, type LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
-import { SidebarMenuAction, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, useSidebar } from "./ui/sidebar";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
-import { DropdownMenu, DropdownMenuSeparator, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { useState } from "react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
+import { SidebarMenuAction, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, useSidebar } from "../ui/sidebar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { DropdownMenu, DropdownMenuSeparator, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { FolderModal } from "./components/folder-modal";
+import { ListModal } from "./components/list-modal";
+import { useCreateEntity, extractCollectionId, extractFolderId } from "./hooks/use-create-entity";
     export type NavItem = {
   title: string
   url: string
@@ -11,11 +15,17 @@ import { DropdownMenu, DropdownMenuSeparator, DropdownMenuContent, DropdownMenuI
   itemType?: 'list' | 'doc' | 'whiteboard'
   items?: NavItem[]
   icon?: LucideIcon
+  collectionId?: string  // Added to track collection ID for folders
 }
 
 export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?: number }) {
   console.log("items", items)
   const { isMobile } = useSidebar();
+  const { createFolder, createFolderLoading, createList, createListLoading } = useCreateEntity();
+  
+  const [folderModalOpen, setFolderModalOpen] = useState(false);
+  const [listModalOpen, setListModalOpen] = useState(false);
+  const [currentParent, setCurrentParent] = useState<{ collectionId?: string | null; folderId?: string | null } | null>(null);
 
   // Helper function to determine item type from URL or itemType property
   const getItemType = (item: NavItem): 'collection' | 'folder' | 'item' => {
@@ -31,6 +41,46 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
     }
     return 'item'
   }
+
+  const handleFolderClick = (item: NavItem) => {
+    const collectionId = extractCollectionId(item.url);
+    const folderId = extractFolderId(item.url);
+    setCurrentParent({ collectionId, folderId });
+    setFolderModalOpen(true);
+  };
+
+  const handleListClick = (item: NavItem) => {
+    const collectionId = extractCollectionId(item.url) || item.collectionId;
+    const folderId = extractFolderId(item.url);
+    if (!collectionId) {
+      // Need collection ID for list creation
+      console.error('Collection ID is required for list creation');
+      return;
+    }
+    setCurrentParent({ collectionId, folderId });
+    setListModalOpen(true);
+  };
+
+  const handleFolderSubmit = async (data: { name: string; description?: string }) => {
+    if (!currentParent) return;
+    await createFolder({
+      collectionId: currentParent.collectionId || null,
+      parentFolderId: currentParent.folderId || null,
+      name: data.name,
+      description: data.description,
+    });
+  };
+
+  const handleListSubmit = async (data: { name: string; description?: string; columns: Array<{ title: string; position: number; color?: string | null }> }) => {
+    if (!currentParent?.collectionId) return;
+    await createList({
+      collectionId: currentParent.collectionId,
+      parentFolderId: currentParent.folderId || null,
+      name: data.name,
+      description: data.description,
+      columns: data.columns,
+    });
+  };
   return (
     <>
       {items.map((item) => {
@@ -100,7 +150,7 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
               align={isMobile ? "end" : "start"}
             >
               {getItemType(item) === 'collection' && (
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleFolderClick(item)}>
                   <div className="flex items-start gap-2 cursor-pointer">
                     <Folder className="text-muted-foreground" />
                     <p>
@@ -112,7 +162,7 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
                   </div>
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleListClick(item)}>
                 <div className="flex items-start gap-2 cursor-pointer">
                   <ClipboardList className="text-muted-foreground" />
                   <p>
@@ -225,7 +275,7 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
                           align={isMobile ? "end" : "start"}
                         >
                           {getItemType(item) === 'collection' && (
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleFolderClick(item)}>
                               <div className="flex items-start gap-2 cursor-pointer">
                                 <Folder className="text-muted-foreground" />
                                 <p>
@@ -237,7 +287,7 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
                               </div>
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleListClick(item)}>
                             <div className="flex items-start gap-2 cursor-pointer">
                               <ClipboardList className="text-muted-foreground" />
                               <p>
@@ -305,6 +355,20 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
           </Collapsible>
         )
       })}
+      
+      {/* Modals */}
+      <FolderModal
+        open={folderModalOpen}
+        onOpenChange={setFolderModalOpen}
+        onSubmit={handleFolderSubmit}
+        isLoading={createFolderLoading}
+      />
+      <ListModal
+        open={listModalOpen}
+        onOpenChange={setListModalOpen}
+        onSubmit={handleListSubmit}
+        isLoading={createListLoading}
+      />
     </>
   )
 }

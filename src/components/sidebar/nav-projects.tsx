@@ -33,10 +33,13 @@ import {
   // SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible"
 import { NestedMenuItems, type NavItem } from "./nested-menu-items"
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip"
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
 import { useState } from "react"
+import { useCreateEntity, extractCollectionId } from "./hooks/use-create-entity"
+import { FolderModal } from "./components/folder-modal"
+import { ListModal } from "./components/list-modal"
 
 type ProjectItem = {
   title: string
@@ -62,6 +65,11 @@ export function NavProjects({
     return initialSet
   })
   const { isMobile } = useSidebar()
+  const { createFolder, createFolderLoading, createList, createListLoading } = useCreateEntity()
+  
+  const [folderModalOpen, setFolderModalOpen] = useState(false)
+  const [listModalOpen, setListModalOpen] = useState(false)
+  const [currentParent, setCurrentParent] = useState<{ collectionId?: string | null } | null>(null)
 
   // Helper function to determine item type from URL
   const getItemType = (url: string): 'collection' | 'folder' | 'item' => {
@@ -83,6 +91,43 @@ export function NavProjects({
         newSet.delete(title)
       }
       return newSet
+    })
+  }
+
+  const handleFolderClick = (item: ProjectItem) => {
+    const collectionId = extractCollectionId(item.url)
+    setCurrentParent({ collectionId: collectionId || null })
+    setFolderModalOpen(true)
+  }
+
+  const handleListClick = (item: ProjectItem) => {
+    const collectionId = extractCollectionId(item.url)
+    if (!collectionId) {
+      console.error('Collection ID is required for list creation')
+      return
+    }
+    setCurrentParent({ collectionId })
+    setListModalOpen(true)
+  }
+
+  const handleFolderSubmit = async (data: { name: string; description?: string }) => {
+    if (!currentParent) return
+    await createFolder({
+      collectionId: currentParent.collectionId || null,
+      parentFolderId: null,
+      name: data.name,
+      description: data.description,
+    })
+  }
+
+  const handleListSubmit = async (data: { name: string; description?: string; columns: Array<{ title: string; position: number; color?: string | null }> }) => {
+    if (!currentParent?.collectionId) return
+    await createList({
+      collectionId: currentParent.collectionId,
+      parentFolderId: null,
+      name: data.name,
+      description: data.description,
+      columns: data.columns,
     })
   }
   return (
@@ -160,7 +205,7 @@ export function NavProjects({
                           align={isMobile ? "end" : "start"}
                         >
                           {getItemType(item.url) === 'collection' && (
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleFolderClick(item)}>
                               <div className="flex items-start gap-2 cursor-pointer">
                                 <Folder className="text-muted-foreground" />
                                 <p>
@@ -172,7 +217,7 @@ export function NavProjects({
                               </div>
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleListClick(item)}>
                             <div className="flex items-start gap-2 cursor-pointer">
                               <ClipboardList className="text-muted-foreground" />
                               <p>
@@ -328,6 +373,20 @@ export function NavProjects({
 
         ))}
       </SidebarMenu>
+      
+      {/* Modals */}
+      <FolderModal
+        open={folderModalOpen}
+        onOpenChange={setFolderModalOpen}
+        onSubmit={handleFolderSubmit}
+        isLoading={createFolderLoading}
+      />
+      <ListModal
+        open={listModalOpen}
+        onOpenChange={setListModalOpen}
+        onSubmit={handleListSubmit}
+        isLoading={createListLoading}
+      />
     </SidebarGroup>
 
 

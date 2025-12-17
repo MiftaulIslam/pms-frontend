@@ -27,6 +27,7 @@ export interface BackendFolder {
   collectionId: string | null;
   parentFolderId: string | null;
   name: string;
+  description?: string | null;
   iconType: IconType | null;
   icon: string | null;
   position: number;

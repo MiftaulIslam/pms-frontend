@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils'
 import { Loader2 } from 'lucide-react'
 import type { ComponentProps, ReactNode } from 'react'
 import styles from './simple-modal.module.css'
-import { Button } from './ui/button'
+import { Button } from '../../ui/button'
 import {
   Dialog,
   DialogClose,
@@ -11,7 +11,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from './ui/dialog'
+} from '../../ui/dialog'
 
 type SimpleModalProviderProps = ComponentProps<typeof Dialog> & {
   className?: string
@@ -49,7 +49,7 @@ export function SimpleModalProvider({
       <DialogContent
         showCloseButton={false}
         className={cn(
-          'flex h-full max-h-full w-full max-w-full flex-col gap-0 overflow-hidden rounded-none border-0 border-[#E5E7E9] bg-[#F9FBFC] p-0 outline-none sm:h-auto sm:max-h-[90vh] sm:max-w-[min(var(--width,45rem),90%)] sm:rounded-[1rem] sm:border',
+          'flex h-full max-h-full w-full max-w-full flex-col gap-0 overflow-hidden rounded-none border bg-card p-0 outline-none sm:h-auto sm:max-h-[90vh] sm:max-w-[min(var(--width,45rem),90%)] sm:rounded-2xl sm:border',
           className
         )}
       >
@@ -66,7 +66,7 @@ export function SimpleModalHeader({
   return (
     <DialogHeader
       className={cn(
-        'flex min-h-18 w-full flex-row items-center justify-between border-b border-[#E5E7E9] px-6',
+        'flex min-h-18 w-full flex-row items-center justify-between border-b border-border px-6',
         className
       )}
       {...props}
@@ -125,7 +125,7 @@ export function SimpleModalContent({
           <DialogClose asChild>
             <Button
               variant="outline"
-              className="h-11 rounded-[12.85px] border-[#E5E7E9] px-[12.85px] text-[#6B7480]"
+              className="h-11 rounded-[12.85px] border-border px-[12.85px] text-muted-foreground"
             >
               {footerCancel === true ? 'Cancel' : footerCancel}
             </Button>
@@ -173,7 +173,7 @@ export function SimpleModalCloseButton({
     <DialogClose asChild {...props}>
       <button
         className={cn(
-          'flex size-[1em] cursor-pointer items-center justify-center rounded-[0.3em] bg-[#F6F6F6] text-sm text-[2.5rem] text-[#6B7480] transition-all hover:bg-red-100 hover:text-red-700',
+          'flex size-[1em] cursor-pointer items-center justify-center rounded-[0.3em] bg-card text-sm text-[2.5rem] text-muted-foreground transition-all hover:bg-red-100 hover:text-red-700',
           className
         )}
       >

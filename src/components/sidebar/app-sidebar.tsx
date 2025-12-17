@@ -16,8 +16,8 @@ import {
 import { useQuery } from "@tanstack/react-query"
 
 import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
-import { NavUser } from "@/components/nav-user"
+import { NavProjects } from "@/components/sidebar/nav-projects"
+import { NavUser } from "@/components/sidebar/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
 import {
   Sidebar,
@@ -33,7 +33,7 @@ import { useWorkspace } from "@/components/sidebar/contexts/workspace-context/us
 import { useCollections } from "./hooks/use-collections"
 import type { PlaygroundCollection, PlaygroundFolder } from "./types/playground-types"
 import type { IconType } from "./types/playground-types"
-import type { NavItem } from "@/components/nested-menu-items"
+import type { NavItem } from "@/components/sidebar/nested-menu-items"
 import type { LucideIcon } from "lucide-react"
 
 // Static navigation data
@@ -177,8 +177,10 @@ export function getIconComponent(iconType: IconType | null, icon: string | null,
 
 /**
  * Transforms folders and items to NavItem format recursively
+ * @param folders - Folders to transform
+ * @param collectionId - Collection ID that these folders belong to
  */
-function transformFoldersToNavItems(folders: PlaygroundFolder[]): NavItem[] {
+function transformFoldersToNavItems(folders: PlaygroundFolder[], collectionId: string): NavItem[] {
   return folders.map((folder) => {
     // Get default icon for folder
     const folderDefaultIcon = Folder;
@@ -188,6 +190,7 @@ function transformFoldersToNavItems(folders: PlaygroundFolder[]): NavItem[] {
       title: folder.name,
       url: `#folder-${folder.id}`,
       icon: folderIcon,
+      collectionId: collectionId, // Pass collection ID for folder items
       items: [
         ...transformFoldersToNavItems(folder.childFolders),
         ...folder.items.map((item) => {
@@ -205,6 +208,7 @@ function transformFoldersToNavItems(folders: PlaygroundFolder[]): NavItem[] {
             itemId: item.id,
             itemType: item.type,
             icon: itemIcon,
+            collectionId: collectionId, // Pass collection ID for items in folders
           };
         }),
       ],
@@ -241,7 +245,7 @@ function transformCollectionsToProjects(collections: PlaygroundCollection[]) {
     
     // Transform folders and items to NavItem format
     const navItems: NavItem[] = [
-      ...transformFoldersToNavItems(collection.folders),
+      ...transformFoldersToNavItems(collection.folders, collection.id),
       ...collection.items.map((item) => {
         // Get default icon based on item type
         let itemDefaultIcon: LucideIcon = Frame;
@@ -377,7 +381,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <Loader2 className="h-4 w-4 animate-spin" />
           </div>
         ) : (
-          <NavProjects projects={projectsData} />
+        <NavProjects projects={projectsData} />
         )}
       </SidebarContent>
       <SidebarFooter>
