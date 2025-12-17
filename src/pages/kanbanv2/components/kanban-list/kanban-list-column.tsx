@@ -159,6 +159,7 @@ const KanbanListColumn: React.FC<Props> = ({
                 <div key={card.id}>
                   <KanbanListRow
                     card={card}
+                    columnId={col.id}
                     isDragging={!!isDragging}
                     onMouseDown={(e) => onDragStart({ id: card.id, columnId: col.id, index }, e)}
                     onMouseUp={onDragEnd}

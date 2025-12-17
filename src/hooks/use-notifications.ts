@@ -6,7 +6,14 @@ export const useNotifications = () => {
     const clearAll = useNotificationStore((s) => s.clearAll)
 
     return {
-        addNotification: (notification: Omit<NotificationData, "id">) => add(notification),
+        addNotification: (notification: Omit<NotificationData, "id">) => {
+            // Default to 3 seconds if length is not provided
+            const notificationWithDefaults = {
+                ...notification,
+                length: notification.length ?? 3000,
+            };
+            return add(notificationWithDefaults);
+        },
         removeNotification: (id: string) => remove(id),
         clearAll,
     }

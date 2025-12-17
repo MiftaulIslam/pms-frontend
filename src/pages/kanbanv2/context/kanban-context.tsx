@@ -8,6 +8,7 @@ interface KanbanContextType {
   moveCard: (cardId: string, sourceColumnId: string, targetColumnId: string, targetIndex: number) => void;
   moveColumn: (columnId: string, newIndex: number) => void;
   createTask: (columnId: string, title: string, description?: string, priority?: Priority, position?: 'top' | 'bottom') => void;
+  updateTask: (columnId: string, cardId: string, updates: Partial<Task>) => void;
   createColumn: (title: string, position?: number) => void;
   updateColumn: (columnId: string, title: string) => void;
   deleteColumn: (columnId: string) => void;
@@ -122,6 +123,25 @@ export const KanbanProvider = ({ children }: KanbanProviderProps) => {
       } else {
         newColumns[columnIndex].cards.push(newTask);
       }
+      
+      return newColumns;
+    });
+  }, []);
+
+  const updateTask = useCallback((
+    columnId: string,
+    cardId: string,
+    updates: Partial<Task>
+  ) => {
+    setColumns((prevColumns) => {
+      const newColumns = [...prevColumns];
+      const column = newColumns.find((c) => c.id === columnId);
+      const task = column?.cards.find((c) => c.id === cardId);
+      
+      if (!task) return prevColumns;
+      
+      // Update task properties
+      Object.assign(task, updates);
       
       return newColumns;
     });
@@ -295,6 +315,7 @@ export const KanbanProvider = ({ children }: KanbanProviderProps) => {
         moveCard,
         moveColumn,
         createTask,
+        updateTask,
         createColumn,
         updateColumn,
         deleteColumn,

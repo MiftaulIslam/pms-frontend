@@ -4,7 +4,9 @@ import { cn } from "@/lib/utils";
 import type { DragItem } from "@/hooks/use-drag-and-drop";
 import { CheckCircle2, ChevronDown, Link2, Plus } from "lucide-react";
 import { useState } from "react";
+import * as React from "react";
 import { useKanban } from "../context";
+import { useTaskDetails } from "../context/task-details-context";
 import SubtaskItem from "./subtask-item";
 import type { Task, Priority } from "@/pages/kanbanv2/types";
 
@@ -34,14 +36,116 @@ export const KanbanCard = ({
 }: KanbanCardProps) => {
   const [expanded, setExpanded] = useState(false)
   const [newSubtask, setNewSubtask] = useState("")
+  const dragStartPosRef = React.useRef<{ x: number; y: number } | null>(null)
+  const hasDraggedRef = React.useRef(false)
+  const mouseMoveHandlerRef = React.useRef<((e: MouseEvent) => void) | null>(null)
+  const mouseUpHandlerRef = React.useRef<(() => void) | null>(null)
   const { addSubtask: addSubtaskAction } = useKanban()
-  const handleMouseDown = (event: React.MouseEvent) => {
-    onDragStart({ id: card.id, columnId, index }, event);
-  };
+  const { openTask } = useTaskDetails()
+  
+  const handleMouseDown = React.useCallback((event: React.MouseEvent) => {
+    // Only start tracking if not already dragging
+    if (isDragging) return
+    
+    // Don't start drag if clicking on interactive elements
+    const target = event.target as HTMLElement
+    if (target.closest('button') || target.closest('input') || target.closest('a')) {
+      return
+    }
+    
+    // Clean up any existing listeners first
+    if (mouseMoveHandlerRef.current) {
+      document.removeEventListener('mousemove', mouseMoveHandlerRef.current)
+      mouseMoveHandlerRef.current = null
+    }
+    if (mouseUpHandlerRef.current) {
+      document.removeEventListener('mouseup', mouseUpHandlerRef.current)
+      mouseUpHandlerRef.current = null
+    }
+    
+    event.stopPropagation()
+    dragStartPosRef.current = { x: event.clientX, y: event.clientY }
+    hasDraggedRef.current = false
 
-  const handleMouseUp = () => {
-    onDragEnd();
-  };
+    // Create handlers that capture the current card/column values
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!dragStartPosRef.current || hasDraggedRef.current) return
+      
+      const dragDistance = Math.sqrt(
+        Math.pow(e.clientX - dragStartPosRef.current.x, 2) + 
+        Math.pow(e.clientY - dragStartPosRef.current.y, 2)
+      )
+      
+      // If mouse moved more than 10px, start dragging
+      if (dragDistance > 10) {
+        hasDraggedRef.current = true
+        
+        // Remove our mouseup listener since parent will handle it
+        if (mouseUpHandlerRef.current) {
+          document.removeEventListener('mouseup', mouseUpHandlerRef.current)
+          mouseUpHandlerRef.current = null
+        }
+        
+        const target = document.elementFromPoint(e.clientX, e.clientY) || event.target as HTMLElement
+        const syntheticEvent = {
+          clientX: dragStartPosRef.current.x,
+          clientY: dragStartPosRef.current.y,
+          target,
+          currentTarget: target,
+          preventDefault: () => {},
+          stopPropagation: () => {},
+        } as unknown as React.MouseEvent
+        onDragStart({ id: card.id, columnId, index }, syntheticEvent)
+        
+        // Remove mousemove listener since drag system will handle it
+        if (mouseMoveHandlerRef.current) {
+          document.removeEventListener('mousemove', mouseMoveHandlerRef.current)
+          mouseMoveHandlerRef.current = null
+        }
+      }
+    }
+
+    const handleMouseUp = () => {
+      if (dragStartPosRef.current && !hasDraggedRef.current) {
+        // This was a click, not a drag - open task modal
+        openTask(card, columnId)
+      }
+      // If hasDraggedRef.current is true, the parent component's handleDragEndWrapper
+      // will handle the drop logic, so we don't call onDragEnd here
+      
+      // Clean up our listeners
+      if (mouseMoveHandlerRef.current) {
+        document.removeEventListener('mousemove', mouseMoveHandlerRef.current)
+        mouseMoveHandlerRef.current = null
+      }
+      if (mouseUpHandlerRef.current) {
+        document.removeEventListener('mouseup', mouseUpHandlerRef.current)
+        mouseUpHandlerRef.current = null
+      }
+      
+      dragStartPosRef.current = null
+      hasDraggedRef.current = false
+    }
+
+    // Store handlers in refs so we can remove them later
+    mouseMoveHandlerRef.current = handleMouseMove
+    mouseUpHandlerRef.current = handleMouseUp
+
+    document.addEventListener('mousemove', handleMouseMove, { passive: true })
+    document.addEventListener('mouseup', handleMouseUp)
+  }, [card, columnId, index, onDragStart, onDragEnd, openTask, isDragging])
+  
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      if (mouseMoveHandlerRef.current) {
+        document.removeEventListener('mousemove', mouseMoveHandlerRef.current)
+      }
+      if (mouseUpHandlerRef.current) {
+        document.removeEventListener('mouseup', mouseUpHandlerRef.current)
+      }
+    }
+  }, [])
 
   const totalSubtasks = card.subtasks?.length ?? 0
   const doneSubtasks = card.subtasks?.filter(s => s.done).length ?? 0
@@ -50,13 +154,13 @@ export const KanbanCard = ({
     <Card
       className={cn(
         "p-4 cursor-grab active:cursor-grabbing select-none",
-        "bg-gradient-card dark:bg-none dark:!bg-card",
+        "bg-gradient-card dark:bg-none dark:bg-card!",
         "transition-all duration-200 ease-smooth",
         "border border-border/50",
         isDragging && "opacity-50 rotate-1 scale-105"
       )}
       onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
+      data-card
     >
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-2">

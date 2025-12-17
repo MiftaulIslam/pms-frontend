@@ -1,4 +1,4 @@
-import { ChevronRight, MoreHorizontal, Plus, Folder, ClipboardList, FileText, File, Database, type LucideIcon } from "lucide-react";
+import { ChevronRight, MoreHorizontal, Plus, Folder, ClipboardList, FileText, File, Database, Trash2, type LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
@@ -7,7 +7,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { DropdownMenu, DropdownMenuSeparator, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { FolderModal } from "./components/folder-modal";
 import { ListModal } from "./components/list-modal";
+import { DeleteCollectionDialog, DeleteFolderDialog, DeleteItemDialog } from "./components/delete-confirmation";
 import { useCreateEntity, extractCollectionId, extractFolderId } from "./hooks/use-create-entity";
+import { useDeleteEntity } from "./hooks/use-delete-entity";
     export type NavItem = {
   title: string
   url: string
@@ -22,10 +24,17 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
   console.log("items", items)
   const { isMobile } = useSidebar();
   const { createFolder, createFolderLoading, createList, createListLoading } = useCreateEntity();
+  const { deleteCollection, deleteCollectionLoading, deleteFolder, deleteFolderLoading, deleteItem, deleteItemLoading } = useDeleteEntity();
   
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [listModalOpen, setListModalOpen] = useState(false);
   const [currentParent, setCurrentParent] = useState<{ collectionId?: string | null; folderId?: string | null } | null>(null);
+  
+  // Delete state
+  const [deleteCollectionOpen, setDeleteCollectionOpen] = useState(false);
+  const [deleteFolderOpen, setDeleteFolderOpen] = useState(false);
+  const [deleteItemOpen, setDeleteItemOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; type?: 'list' | 'doc' | 'whiteboard' } | null>(null);
 
   // Helper function to determine item type from URL or itemType property
   const getItemType = (item: NavItem): 'collection' | 'folder' | 'item' => {
@@ -80,6 +89,53 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
       description: data.description,
       columns: data.columns,
     });
+  };
+
+  const handleDeleteClick = (item: NavItem) => {
+    const itemType = getItemType(item);
+    let id: string | null = null;
+    
+    if (itemType === 'collection') {
+      id = extractCollectionId(item.url);
+      if (id) {
+        setDeleteTarget({ id, name: item.title });
+        setDeleteCollectionOpen(true);
+      }
+    } else if (itemType === 'folder') {
+      id = extractFolderId(item.url);
+      if (id) {
+        setDeleteTarget({ id, name: item.title });
+        setDeleteFolderOpen(true);
+      }
+    } else {
+      // Item
+      id = item.itemId || null;
+      if (id) {
+        setDeleteTarget({ id, name: item.title, type: item.itemType });
+        setDeleteItemOpen(true);
+      }
+    }
+  };
+
+  const handleDeleteCollection = async () => {
+    if (!deleteTarget) return;
+    await deleteCollection(deleteTarget.id);
+    setDeleteCollectionOpen(false);
+    setDeleteTarget(null);
+  };
+
+  const handleDeleteFolder = async () => {
+    if (!deleteTarget) return;
+    await deleteFolder(deleteTarget.id);
+    setDeleteFolderOpen(false);
+    setDeleteTarget(null);
+  };
+
+  const handleDeleteItem = async () => {
+    if (!deleteTarget) return;
+    await deleteItem(deleteTarget.id);
+    setDeleteItemOpen(false);
+    setDeleteTarget(null);
   };
   return (
     <>
@@ -221,7 +277,13 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
             <DropdownMenuItem>View</DropdownMenuItem>
             <DropdownMenuItem>Share</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Delete</DropdownMenuItem>
+            <DropdownMenuItem 
+              variant="destructive"
+              onClick={() => handleDeleteClick(item)}
+            >
+              <Trash2 className="text-muted-foreground" />
+              <span>Delete</span>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -344,7 +406,13 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
                           <DropdownMenuItem>View</DropdownMenuItem>
                           <DropdownMenuItem>Share</DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem>Delete</DropdownMenuItem>
+                          <DropdownMenuItem 
+                            variant="destructive"
+                            onClick={() => handleDeleteClick(item)}
+                          >
+                            <Trash2 className="text-muted-foreground" />
+                            <span>Delete</span>
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -368,6 +436,30 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
         onOpenChange={setListModalOpen}
         onSubmit={handleListSubmit}
         isLoading={createListLoading}
+      />
+      
+      {/* Delete Dialogs */}
+      <DeleteCollectionDialog
+        open={deleteCollectionOpen}
+        onOpenChange={setDeleteCollectionOpen}
+        onConfirm={handleDeleteCollection}
+        collectionName={deleteTarget?.name || ''}
+        isLoading={deleteCollectionLoading}
+      />
+      <DeleteFolderDialog
+        open={deleteFolderOpen}
+        onOpenChange={setDeleteFolderOpen}
+        onConfirm={handleDeleteFolder}
+        folderName={deleteTarget?.name || ''}
+        isLoading={deleteFolderLoading}
+      />
+      <DeleteItemDialog
+        open={deleteItemOpen}
+        onOpenChange={setDeleteItemOpen}
+        onConfirm={handleDeleteItem}
+        itemName={deleteTarget?.name || ''}
+        itemType={deleteTarget?.type}
+        isLoading={deleteItemLoading}
       />
     </>
   )

@@ -3,6 +3,8 @@ import { Plus, List as ListIcon, LayoutGrid, Search, EyeOff, Settings, ChevronDo
 import { useRef, useState } from "react";
 import { useDragAndDrop } from "@/hooks/use-drag-and-drop";
 import { useKanban, KanbanProvider } from "./context/kanban-context-api";
+import { TaskDetailsProvider } from "./context/task-details-context";
+import { TaskDetailsModal } from "./components/task-details-modal";
 import { useKanbanItemId } from "./hooks/use-kanban-item";
 import { useCallback } from "react";
 import type { DragItem } from "@/hooks/use-drag-and-drop";
@@ -263,7 +265,10 @@ const Kanbanv2 = () => {
   
   return (
     <KanbanProvider itemId={itemId}>
-      <Kanbanv2Content />
+      <TaskDetailsProvider>
+        <Kanbanv2Content />
+        <TaskDetailsModal />
+      </TaskDetailsProvider>
     </KanbanProvider>
   );
 };

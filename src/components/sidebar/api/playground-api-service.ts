@@ -213,3 +213,27 @@ export async function reorderKanbanColumn(columnId: string, position: number): P
   return response.data;
 }
 
+/**
+ * Deletes a collection
+ * @param collectionId Collection ID
+ */
+export async function deleteCollection(collectionId: string): Promise<void> {
+  await apiClient.delete(COLLECTION_APIS({ collectionId }).DELETE_COLLECTION);
+}
+
+/**
+ * Deletes a folder
+ * @param folderId Folder ID
+ */
+export async function deleteFolder(folderId: string): Promise<void> {
+  await apiClient.delete(COLLECTION_APIS({ folderId }).DELETE_FOLDER);
+}
+
+/**
+ * Deletes an item
+ * @param itemId Item ID
+ */
+export async function deleteItem(itemId: string): Promise<void> {
+  await apiClient.delete(COLLECTION_APIS({ itemId }).DELETE_ITEM);
+}
+

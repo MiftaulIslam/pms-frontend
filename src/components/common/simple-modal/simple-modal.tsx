@@ -34,6 +34,7 @@ type SimpleModalContentProps = {
   footerCancel?: ReactNode | true
   footerSubmit?: ReactNode | true
   footerSubmitLoading?: boolean
+  footerSubmitVariant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
   onFooterSubmitClick?: () => void
 }
 
@@ -102,6 +103,7 @@ export function SimpleModalContent({
   footerCancel,
   footerSubmit,
   footerSubmitLoading,
+  footerSubmitVariant = 'default',
   onFooterSubmitClick,
 }: SimpleModalContentProps) {
   const renderedHeaderContent =
@@ -134,7 +136,7 @@ export function SimpleModalContent({
 
         {footerSubmit && (
           <Button
-            variant="default"
+            variant={footerSubmitVariant}
             onClick={onFooterSubmitClick}
             className="h-11 rounded-[12.85px] px-4"
             disabled={footerSubmitLoading}

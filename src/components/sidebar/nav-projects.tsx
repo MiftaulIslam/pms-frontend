@@ -38,8 +38,10 @@ import { NestedMenuItems, type NavItem } from "./nested-menu-items"
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
 import { useState } from "react"
 import { useCreateEntity, extractCollectionId } from "./hooks/use-create-entity"
+import { useDeleteEntity } from "./hooks/use-delete-entity"
 import { FolderModal } from "./components/folder-modal"
 import { ListModal } from "./components/list-modal"
+import { DeleteCollectionDialog, DeleteFolderDialog, DeleteItemDialog } from "./components/delete-confirmation"
 
 type ProjectItem = {
   title: string
@@ -66,10 +68,17 @@ export function NavProjects({
   })
   const { isMobile } = useSidebar()
   const { createFolder, createFolderLoading, createList, createListLoading } = useCreateEntity()
+  const { deleteCollection, deleteCollectionLoading, deleteFolder, deleteFolderLoading, deleteItem, deleteItemLoading } = useDeleteEntity()
   
   const [folderModalOpen, setFolderModalOpen] = useState(false)
   const [listModalOpen, setListModalOpen] = useState(false)
   const [currentParent, setCurrentParent] = useState<{ collectionId?: string | null } | null>(null)
+  
+  // Delete state
+  const [deleteCollectionOpen, setDeleteCollectionOpen] = useState(false)
+  const [deleteFolderOpen, setDeleteFolderOpen] = useState(false)
+  const [deleteItemOpen, setDeleteItemOpen] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; type?: 'list' | 'doc' | 'whiteboard' } | null>(null)
 
   // Helper function to determine item type from URL
   const getItemType = (url: string): 'collection' | 'folder' | 'item' => {
@@ -129,6 +138,44 @@ export function NavProjects({
       description: data.description,
       columns: data.columns,
     })
+  }
+
+  const handleDeleteClick = (item: ProjectItem) => {
+    const itemType = getItemType(item.url)
+    const id = extractCollectionId(item.url)
+    if (!id) return
+    
+    setDeleteTarget({ id, name: item.title })
+    
+    if (itemType === 'collection') {
+      setDeleteCollectionOpen(true)
+    } else if (itemType === 'folder') {
+      setDeleteFolderOpen(true)
+    } else {
+      // For items, we'd need itemType from the item
+      setDeleteItemOpen(true)
+    }
+  }
+
+  const handleDeleteCollection = async () => {
+    if (!deleteTarget) return
+    await deleteCollection(deleteTarget.id)
+    setDeleteCollectionOpen(false)
+    setDeleteTarget(null)
+  }
+
+  const handleDeleteFolder = async () => {
+    if (!deleteTarget) return
+    await deleteFolder(deleteTarget.id)
+    setDeleteFolderOpen(false)
+    setDeleteTarget(null)
+  }
+
+  const handleDeleteItem = async () => {
+    if (!deleteTarget) return
+    await deleteItem(deleteTarget.id)
+    setDeleteItemOpen(false)
+    setDeleteTarget(null)
   }
   return (
 
@@ -286,9 +333,12 @@ export function NavProjects({
                           <span>Share Project</span>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
+                        <DropdownMenuItem 
+                          variant="destructive"
+                          onClick={() => handleDeleteClick(item)}
+                        >
                           <Trash2 className="text-muted-foreground" />
-                          <span>Delete Project</span>
+                          <span>Delete {getItemType(item.url) === 'collection' ? 'Collection' : getItemType(item.url) === 'folder' ? 'Folder' : 'Item'}</span>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -386,6 +436,30 @@ export function NavProjects({
         onOpenChange={setListModalOpen}
         onSubmit={handleListSubmit}
         isLoading={createListLoading}
+      />
+      
+      {/* Delete Dialogs */}
+      <DeleteCollectionDialog
+        open={deleteCollectionOpen}
+        onOpenChange={setDeleteCollectionOpen}
+        onConfirm={handleDeleteCollection}
+        collectionName={deleteTarget?.name || ''}
+        isLoading={deleteCollectionLoading}
+      />
+      <DeleteFolderDialog
+        open={deleteFolderOpen}
+        onOpenChange={setDeleteFolderOpen}
+        onConfirm={handleDeleteFolder}
+        folderName={deleteTarget?.name || ''}
+        isLoading={deleteFolderLoading}
+      />
+      <DeleteItemDialog
+        open={deleteItemOpen}
+        onOpenChange={setDeleteItemOpen}
+        onConfirm={handleDeleteItem}
+        itemName={deleteTarget?.name || ''}
+        itemType={deleteTarget?.type}
+        isLoading={deleteItemLoading}
       />
     </SidebarGroup>
 
