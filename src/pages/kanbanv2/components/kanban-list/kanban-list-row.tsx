@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { Task } from "@/pages/kanbanv2/types";
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
 import { Flag } from "lucide-react";
 import { priorityColorClass } from "./priority";
 import { useTaskDetails } from "../../context/task-details-context";

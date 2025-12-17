@@ -79,88 +79,88 @@ export const KanbanProvider = ({ children, itemId }: KanbanProviderProps) => {
     const [isLoading, setIsLoading] = useState(true);
     const [isError, setIsError] = useState(false);
     const [error, setError] = useState<Error | null>(null);
-    
+
     // Store previous state for rollback
     const previousStateRef = useRef<KanbanColumnData[]>([]);
     const pendingOperationsRef = useRef<Set<string>>(new Set());
     // Ref to always access current columns state
     const columnsRef = useRef<KanbanColumnData[]>([]);
-    
+
     // Keep ref in sync with state
     useEffect(() => {
         columnsRef.current = columns;
     }, [columns]);
 
-  /**
-   * Fetch kanban board data
-   */
-  const fetchBoard = useCallback(async () => {
-    if (!itemId) {
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      setIsError(false);
-      setError(null);
-
-      // Try to fetch existing board
-      try {
-        const boardData = await getKanbanBoardFull(itemId);
-        setBoardId(boardData.id);
-        const transformedData = transformKanbanBoardToFrontend(boardData);
-        setColumns(transformedData);
-        previousStateRef.current = JSON.parse(JSON.stringify(transformedData)); // Deep clone
-      } catch (err: any) {
-        // If board doesn't exist (404), create it
-        // Axios errors have response.status, other errors might have different structure
-        const isNotFound = 
-          err?.response?.status === 404 || 
-          err?.status === 404 ||
-          err?.message?.toLowerCase().includes('not found') ||
-          err?.message?.toLowerCase().includes('404');
-          
-        if (isNotFound) {
-          try {
-            const newBoard = await createKanbanBoard(itemId);
-            setBoardId(newBoard.id);
-            setColumns([]);
-            previousStateRef.current = [];
-          } catch (createErr) {
-            // If creation also fails, throw the original error
-            throw err;
-          }
-        } else {
-          throw err;
+    /**
+     * Fetch kanban board data
+     */
+    const fetchBoard = useCallback(async () => {
+        if (!itemId) {
+            setIsLoading(false);
+            return;
         }
-      }
-    } catch (err) {
-      setIsError(true);
-      setError(err instanceof Error ? err : new Error('Failed to fetch kanban board'));
-      console.error('Failed to fetch kanban board:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [itemId]);
 
-  /**
-   * Get boardId (from state or fetch if needed)
-   */
-  const getBoardIdFromBackend = useCallback(async (): Promise<string> => {
-    if (boardId) return boardId;
-    
-    if (!itemId) throw new Error('ItemId is required');
-    
-    try {
-      const boardData = await getKanbanBoardFull(itemId);
-      setBoardId(boardData.id);
-      return boardData.id;
-    } catch (err) {
-      console.error('Failed to get boardId:', err);
-      throw err;
-    }
-  }, [itemId, boardId]);
+        try {
+            setIsLoading(true);
+            setIsError(false);
+            setError(null);
+
+            // Try to fetch existing board
+            try {
+                const boardData = await getKanbanBoardFull(itemId);
+                setBoardId(boardData.id);
+                const transformedData = transformKanbanBoardToFrontend(boardData);
+                setColumns(transformedData);
+                previousStateRef.current = JSON.parse(JSON.stringify(transformedData)); // Deep clone
+            } catch (err: any) {
+                // If board doesn't exist (404), create it
+                // Axios errors have response.status, other errors might have different structure
+                const isNotFound =
+                    err?.response?.status === 404 ||
+                    err?.status === 404 ||
+                    err?.message?.toLowerCase().includes('not found') ||
+                    err?.message?.toLowerCase().includes('404');
+
+                if (isNotFound) {
+                    try {
+                        const newBoard = await createKanbanBoard(itemId);
+                        setBoardId(newBoard.id);
+                        setColumns([]);
+                        previousStateRef.current = [];
+                    } catch (createErr) {
+                        // If creation also fails, throw the original error
+                        throw err;
+                    }
+                } else {
+                    throw err;
+                }
+            }
+        } catch (err) {
+            setIsError(true);
+            setError(err instanceof Error ? err : new Error('Failed to fetch kanban board'));
+            console.error('Failed to fetch kanban board:', err);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [itemId]);
+
+    /**
+     * Get boardId (from state or fetch if needed)
+     */
+    const getBoardIdFromBackend = useCallback(async (): Promise<string> => {
+        if (boardId) return boardId;
+
+        if (!itemId) throw new Error('ItemId is required');
+
+        try {
+            const boardData = await getKanbanBoardFull(itemId);
+            setBoardId(boardData.id);
+            return boardData.id;
+        } catch (err) {
+            console.error('Failed to get boardId:', err);
+            throw err;
+        }
+    }, [itemId, boardId]);
 
     // Fetch board on mount and when itemId changes
     useEffect(() => {
@@ -443,12 +443,12 @@ export const KanbanProvider = ({ children, itemId }: KanbanProviderProps) => {
             setColumns((prevColumns) => {
                 return prevColumns.map((column) => {
                     if (column.id !== columnId) return column;
-                    
+
                     return {
                         ...column,
                         cards: column.cards.map((card) => {
                             if (card.id !== cardId) return card;
-                            
+
                             const updateSubtask = (subtasks: Task[]): Task[] => {
                                 return subtasks.map((subtask) => {
                                     if (subtask.id === subtaskId) {
@@ -460,7 +460,7 @@ export const KanbanProvider = ({ children, itemId }: KanbanProviderProps) => {
                                     return subtask;
                                 });
                             };
-                            
+
                             if (card.subtasks && card.subtasks.length > 0) {
                                 return { ...card, subtasks: updateSubtask(card.subtasks) };
                             }
@@ -478,12 +478,12 @@ export const KanbanProvider = ({ children, itemId }: KanbanProviderProps) => {
                 setColumns((prevColumns) => {
                     return prevColumns.map((column) => {
                         if (column.id !== columnId) return column;
-                        
+
                         return {
                             ...column,
                             cards: column.cards.map((card) => {
                                 if (card.id !== cardId) return card;
-                                
+
                                 const updateSubtask = (subtasks: Task[]): Task[] => {
                                     return subtasks.map((subtask) => {
                                         if (subtask.id === subtaskId) {
@@ -495,7 +495,7 @@ export const KanbanProvider = ({ children, itemId }: KanbanProviderProps) => {
                                         return subtask;
                                     });
                                 };
-                                
+
                                 if (card.subtasks && card.subtasks.length > 0) {
                                     return { ...card, subtasks: updateSubtask(card.subtasks) };
                                 }
@@ -510,7 +510,7 @@ export const KanbanProvider = ({ children, itemId }: KanbanProviderProps) => {
                 const currentColumns = columnsRef.current;
                 const task = findTaskInColumns(currentColumns, subtaskId);
                 const currentDone = task?.task.done || false;
-                
+
                 return await apiUpdateTask(subtaskId, {
                     done: done !== undefined ? done : !currentDone,
                 });

@@ -192,7 +192,7 @@ function transformFoldersToNavItems(folders: PlaygroundFolder[], collectionId: s
       icon: folderIcon,
       collectionId: collectionId, // Pass collection ID for folder items
       items: [
-        ...transformFoldersToNavItems(folder.childFolders),
+        ...transformFoldersToNavItems(folder.childFolders, collectionId),
         ...folder.items.map((item) => {
           // Get default icon based on item type
           let itemDefaultIcon: LucideIcon = Frame;
