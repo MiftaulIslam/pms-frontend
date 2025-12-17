@@ -1,4 +1,4 @@
-import { ChevronRight, MoreHorizontal, Plus, type LucideIcon } from "lucide-react";
+import { ChevronRight, MoreHorizontal, Plus, Folder, ClipboardList, FileText, File, Database, type LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { SidebarMenuAction, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, useSidebar } from "./ui/sidebar";
@@ -16,6 +16,21 @@ import { DropdownMenu, DropdownMenuSeparator, DropdownMenuContent, DropdownMenuI
 export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?: number }) {
   console.log("items", items)
   const { isMobile } = useSidebar();
+
+  // Helper function to determine item type from URL or itemType property
+  const getItemType = (item: NavItem): 'collection' | 'folder' | 'item' => {
+    // If item has itemType property, it's an item (list, doc, whiteboard, etc.)
+    if (item.itemType) {
+      return 'item'
+    }
+    if (item.url.startsWith('#collection-')) {
+      return 'collection'
+    }
+    if (item.url.startsWith('#folder-')) {
+      return 'folder'
+    }
+    return 'item'
+  }
   return (
     <>
       {items.map((item) => {
@@ -72,17 +87,79 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
                     
                   </CollapsibleTrigger>
                   <div className="ml-auto flex items-center gap-1">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuAction className="right-[7px]">
-              <Plus />
-            </SidebarMenuAction>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent side={isMobile ? "bottom" : "right"}>
-            <DropdownMenuItem>Add Folder</DropdownMenuItem>
-            <DropdownMenuItem>Add Item</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {getItemType(item) !== 'item' && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuAction className="right-[7px]">
+                <Plus />
+              </SidebarMenuAction>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              className="rounded-lg"
+              side={isMobile ? "bottom" : "right"}
+              align={isMobile ? "end" : "start"}
+            >
+              {getItemType(item) === 'collection' && (
+                <DropdownMenuItem>
+                  <div className="flex items-start gap-2 cursor-pointer">
+                    <Folder className="text-muted-foreground" />
+                    <p>
+                      <span className="text-sm font-medium block">Folder</span>
+                      <span className="text-xs text-muted-foreground">
+                        Create a new folder to organize your projects
+                      </span>
+                    </p>
+                  </div>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem>
+                <div className="flex items-start gap-2 cursor-pointer">
+                  <ClipboardList className="text-muted-foreground" />
+                  <p>
+                    <span className="text-sm font-medium block">List</span>
+                    <span className="text-xs text-muted-foreground">
+                      Track tasks, ideas, and more
+                    </span>
+                  </p>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <div className="flex items-start gap-2 cursor-pointer">
+                  <FileText className="text-muted-foreground" />
+                  <p>
+                    <span className="text-sm font-medium block">Whiteboard</span>
+                    <span className="text-xs text-muted-foreground">
+                      Collaborate with your team on ideas and plans
+                    </span>
+                  </p>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <div className="flex items-start gap-2 cursor-pointer">
+                  <File className="text-muted-foreground" />
+                  <p>
+                    <span className="text-sm font-medium block">Doc</span>
+                    <span className="text-xs text-muted-foreground">
+                      Share files, images, and more
+                    </span>
+                  </p>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <div className="flex items-start gap-2 cursor-pointer">
+                  <Database className="text-muted-foreground" />
+                  <p>
+                    <span className="text-sm font-medium block">ERD</span>
+                    <span className="text-xs text-muted-foreground">
+                      Visualize your database schema
+                    </span>
+                  </p>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -106,33 +183,123 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
 
                 </>
               ) : (
-                <SidebarMenuSubButton asChild>
-                  {item.itemType === 'list' && item.itemId ? (
-                    <Link to={`list/${item.itemId}`}>
-                      <Tooltip>
-                        <TooltipTrigger className="flex items-center gap-2">
-                          {item.icon && <item.icon className="size-4" />}
-                          <span>{item.title.length > 16 ? item.title.slice(0, 16) + '...' : item.title}</span>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{item.title}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </Link>
-                  ) : (
-                    <a href={item.url}>
-                      <Tooltip>
-                        <TooltipTrigger className="flex items-center gap-2">
-                          {item.icon && <item.icon className="size-4" />}
-                          <span>{item.title.length > 16 ? item.title.slice(0, 16) + '...' : item.title}</span>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{item.title}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </a>
+                <>
+                  <SidebarMenuSubButton asChild>
+                    {item.itemType === 'list' && item.itemId ? (
+                      <Link to={`list/${item.itemId}`}>
+                        <Tooltip>
+                          <TooltipTrigger className="flex items-center gap-2">
+                            {item.icon && <item.icon className="size-4" />}
+                            <span>{item.title.length > 16 ? item.title.slice(0, 16) + '...' : item.title}</span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{item.title}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </Link>
+                    ) : (
+                      <a href={item.url}>
+                        <Tooltip>
+                          <TooltipTrigger className="flex items-center gap-2">
+                            {item.icon && <item.icon className="size-4" />}
+                            <span>{item.title.length > 16 ? item.title.slice(0, 16) + '...' : item.title}</span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{item.title}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </a>
+                    )}
+                  </SidebarMenuSubButton>
+                  {getItemType(item) !== 'item' && (
+                    <div className="ml-auto flex items-center gap-1">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <SidebarMenuAction className="right-[7px]">
+                            <Plus />
+                          </SidebarMenuAction>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent 
+                          className="rounded-lg"
+                          side={isMobile ? "bottom" : "right"}
+                          align={isMobile ? "end" : "start"}
+                        >
+                          {getItemType(item) === 'collection' && (
+                            <DropdownMenuItem>
+                              <div className="flex items-start gap-2 cursor-pointer">
+                                <Folder className="text-muted-foreground" />
+                                <p>
+                                  <span className="text-sm font-medium block">Folder</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    Create a new folder to organize your projects
+                                  </span>
+                                </p>
+                              </div>
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem>
+                            <div className="flex items-start gap-2 cursor-pointer">
+                              <ClipboardList className="text-muted-foreground" />
+                              <p>
+                                <span className="text-sm font-medium block">List</span>
+                                <span className="text-xs text-muted-foreground">
+                                  Track tasks, ideas, and more
+                                </span>
+                              </p>
+                            </div>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem>
+                            <div className="flex items-start gap-2 cursor-pointer">
+                              <FileText className="text-muted-foreground" />
+                              <p>
+                                <span className="text-sm font-medium block">Whiteboard</span>
+                                <span className="text-xs text-muted-foreground">
+                                  Collaborate with your team on ideas and plans
+                                </span>
+                              </p>
+                            </div>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <div className="flex items-start gap-2 cursor-pointer">
+                              <File className="text-muted-foreground" />
+                              <p>
+                                <span className="text-sm font-medium block">Doc</span>
+                                <span className="text-xs text-muted-foreground">
+                                  Share files, images, and more
+                                </span>
+                              </p>
+                            </div>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <div className="flex items-start gap-2 cursor-pointer">
+                              <Database className="text-muted-foreground" />
+                              <p>
+                                <span className="text-sm font-medium block">ERD</span>
+                                <span className="text-xs text-muted-foreground">
+                                  Visualize your database schema
+                                </span>
+                              </p>
+                            </div>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <SidebarMenuAction className="right-[2.2rem]">
+                            <MoreHorizontal />
+                          </SidebarMenuAction>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent side={isMobile ? "bottom" : "right"}>
+                          <DropdownMenuItem>View</DropdownMenuItem>
+                          <DropdownMenuItem>Share</DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem>Delete</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   )}
-                </SidebarMenuSubButton>
+                </>
               )}
             </SidebarMenuSubItem>
           </Collapsible>

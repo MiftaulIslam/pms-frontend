@@ -2,6 +2,10 @@
 
 import {
   ChevronRight,
+  ClipboardList,
+  Database,
+  File,
+  FileText,
   Folder,
   Forward,
   MoreHorizontal,
@@ -58,7 +62,17 @@ export function NavProjects({
     return initialSet
   })
   const { isMobile } = useSidebar()
-  console.log("projects", projects)
+
+  // Helper function to determine item type from URL
+  const getItemType = (url: string): 'collection' | 'folder' | 'item' => {
+    if (url.startsWith('#collection-')) {
+      return 'collection'
+    }
+    if (url.startsWith('#folder-')) {
+      return 'folder'
+    }
+    return 'item'
+  }
 
   const handleOpenChange = (title: string, isOpen: boolean) => {
     setOpenProjects(prev => {
@@ -71,7 +85,6 @@ export function NavProjects({
       return newSet
     })
   }
-
   return (
 
     <SidebarGroup>
@@ -103,11 +116,7 @@ export function NavProjects({
 
                             {item.items && item.items.length > 0 && (
                               <ChevronRight
-                                className="
-          size-4
-            absolute opacity-0 transition-all duration-200
-            group-hover/menu-item:opacity-100
-            group-data-[state=open]/collapsible:rotate-90
+                                className=" size-4 absolute opacity-0 transition-all duration-200 group-hover/menu-item:opacity-100 group-data-[state=open]/collapsible:rotate-90
           "
                               />
                             )}
@@ -137,28 +146,80 @@ export function NavProjects({
                         </SidebarMenuButton> */}
                       </TooltipTrigger>
                     </Tooltip>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <SidebarMenuAction >
-                          <Plus />
-                          <span className="sr-only">Add</span>
-                        </SidebarMenuAction>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        className="w-48 rounded-lg"
-                        side={isMobile ? "bottom" : "right"}
-                        align={isMobile ? "end" : "start"}
-                      >
-                        <DropdownMenuItem>
-                          <Folder className="text-muted-foreground" />
-                          <span>Add Folder</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Forward className="text-muted-foreground" />
-                          <span>Add Item</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {getItemType(item.url) !== 'item' && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <SidebarMenuAction >
+                            <Plus />
+                            <span className="sr-only">Add</span>
+                          </SidebarMenuAction>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          className=" rounded-lg"
+                          side={isMobile ? "bottom" : "right"}
+                          align={isMobile ? "end" : "start"}
+                        >
+                          {getItemType(item.url) === 'collection' && (
+                            <DropdownMenuItem>
+                              <div className="flex items-start gap-2 cursor-pointer">
+                                <Folder className="text-muted-foreground" />
+                                <p>
+                                  <span className="text-sm font-medium block">Folder</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    Create a new folder to organize your projects
+                                  </span>
+                                </p>
+                              </div>
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem>
+                            <div className="flex items-start gap-2 cursor-pointer">
+                              <ClipboardList className="text-muted-foreground" />
+                              <p>
+                                <span className="text-sm font-medium block">List</span>
+                                <span className="text-xs text-muted-foreground">
+                                  Track tasks, ideas, and more
+                                </span>
+                              </p>
+                            </div>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem>
+                            <div className="flex items-start gap-2 cursor-pointer">
+                              <FileText className="text-muted-foreground" />
+                              <p>
+                                <span className="text-sm font-medium block">Whiteboard</span>
+                                <span className="text-xs text-muted-foreground">
+                                  Collaborate with your team on ideas and plans
+                                </span>
+                              </p>
+                            </div>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <div className="flex items-start gap-2 cursor-pointer">
+                              <File className="text-muted-foreground" />
+                              <p>
+                                <span className="text-sm font-medium block">Doc</span>
+                                <span className="text-xs text-muted-foreground">
+                                  Share files, images, and more
+                                </span>
+                              </p>
+                            </div>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <div className="flex items-start gap-2 cursor-pointer">
+                              <Database className="text-muted-foreground" />
+                              <p>
+                                <span className="text-sm font-medium block">ERD</span>
+                                <span className="text-xs text-muted-foreground">
+                                  Visualize your database schema
+                                </span>
+                              </p>
+                            </div>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <SidebarMenuAction className="right-8">
