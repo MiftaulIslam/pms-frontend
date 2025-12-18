@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { createFolder, createItem } from '../api/playground-api-service';
+import { createFolder, createItem, createCollection } from '../api/playground-api-service';
 import { useNotifications } from '@/hooks/use-notifications';
+import { useWorkspace } from '../contexts/workspace-context/use-workspace';
 
 /**
  * Extract collection ID from URL like "#collection-{id}"
@@ -100,10 +101,47 @@ export function useCreateEntity() {
     },
   });
 
+  // Collection creation mutation
+  const { currentWorkspaceId } = useWorkspace();
+  const createCollectionMutation = useMutation({
+    mutationFn: async (data: {
+      name: string;
+      description?: string;
+    }) => {
+      if (!currentWorkspaceId) {
+        throw new Error('Workspace ID is required');
+      }
+      return createCollection({
+        workspaceId: currentWorkspaceId,
+        name: data.name,
+        description: data.description,
+      });
+    },
+    onSuccess: () => {
+      // Invalidate collections query to refetch
+      queryClient.invalidateQueries({ queryKey: ['collections'] });
+      addNotification({
+        type: 'success',
+        title: 'Collection created',
+        message: 'Collection has been created successfully',
+      });
+    },
+    onError: (error: Error) => {
+      addNotification({
+        type: 'error',
+        title: 'Failed to create collection',
+        message: error.message || 'An error occurred',
+      });
+      throw error;
+    },
+  });
+
   return {
     createFolder: createFolderMutation.mutateAsync,
     createFolderLoading: createFolderMutation.isPending,
     createList: createListMutation.mutateAsync,
     createListLoading: createListMutation.isPending,
+    createCollection: createCollectionMutation.mutateAsync,
+    createCollectionLoading: createCollectionMutation.isPending,
   };
 }

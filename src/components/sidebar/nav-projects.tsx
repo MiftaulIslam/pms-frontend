@@ -41,6 +41,7 @@ import { useCreateEntity, extractCollectionId } from "./hooks/use-create-entity"
 import { useDeleteEntity } from "./hooks/use-delete-entity"
 import { FolderModal } from "./components/folder-modal"
 import { ListModal } from "./components/list-modal"
+import { CreateCollectionModal } from "./components/create-collection-modal"
 import { DeleteCollectionDialog, DeleteFolderDialog, DeleteItemDialog } from "./components/delete-confirmation"
 
 type ProjectItem = {
@@ -67,9 +68,10 @@ export function NavProjects({
     return initialSet
   })
   const { isMobile } = useSidebar()
-  const { createFolder, createFolderLoading, createList, createListLoading } = useCreateEntity()
+  const { createFolder, createFolderLoading, createList, createListLoading, createCollection, createCollectionLoading } = useCreateEntity()
   const { deleteCollection, deleteCollectionLoading, deleteFolder, deleteFolderLoading, deleteItem, deleteItemLoading } = useDeleteEntity()
   
+  const [collectionModalOpen, setCollectionModalOpen] = useState(false)
   const [folderModalOpen, setFolderModalOpen] = useState(false)
   const [listModalOpen, setListModalOpen] = useState(false)
   const [currentParent, setCurrentParent] = useState<{ collectionId?: string | null } | null>(null)
@@ -140,6 +142,13 @@ export function NavProjects({
     })
   }
 
+  const handleCollectionSubmit = async (data: { name: string; description?: string }) => {
+    await createCollection({
+      name: data.name,
+      description: data.description,
+    })
+  }
+
   const handleDeleteClick = (item: ProjectItem) => {
     const itemType = getItemType(item.url)
     const id = extractCollectionId(item.url)
@@ -180,7 +189,16 @@ export function NavProjects({
   return (
 
     <SidebarGroup>
-      <SidebarGroupLabel>Playground</SidebarGroupLabel>
+      <div className="flex items-center justify-between px-2">
+        <SidebarGroupLabel>Playground</SidebarGroupLabel>
+        <button
+          onClick={() => setCollectionModalOpen(true)}
+          className="flex h-6 w-6 items-center justify-center rounded-md text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+          aria-label="Create collection"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+      </div>
       <SidebarMenu>
         {projects.map((item) => (
           <>
@@ -425,6 +443,12 @@ export function NavProjects({
       </SidebarMenu>
       
       {/* Modals */}
+      <CreateCollectionModal
+        open={collectionModalOpen}
+        onOpenChange={setCollectionModalOpen}
+        onSubmit={handleCollectionSubmit}
+        isLoading={createCollectionLoading}
+      />
       <FolderModal
         open={folderModalOpen}
         onOpenChange={setFolderModalOpen}

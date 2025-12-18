@@ -13,6 +13,7 @@ export interface BackendCollection {
   id: string;
   workspaceId: string;
   name: string;
+  description?: string | null;
   iconType: IconType | null;
   icon: string | null;
   position: number;
@@ -82,6 +83,7 @@ export interface PlaygroundCollection {
   id: string;
   workspaceId: string;
   name: string;
+  description?: string | null;
   iconType: IconType | null;
   icon: string | null;
   position: number;

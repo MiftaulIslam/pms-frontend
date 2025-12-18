@@ -5,6 +5,7 @@ import type {
   PlaygroundCollection,
   PlaygroundFolder,
   PlaygroundCollectionsResponse,
+  IconType,
 } from '../types/playground-types';
 import { COLLECTION_APIS } from './playground-api';
 
@@ -97,6 +98,7 @@ function transformCollection(backendCollection: BackendCollection): PlaygroundCo
     id: backendCollection.id,
     workspaceId: backendCollection.workspaceId,
     name: backendCollection.name,
+    description: backendCollection.description,
     iconType: backendCollection.iconType,
     icon: backendCollection.icon,
     position: backendCollection.position,
@@ -120,6 +122,25 @@ export async function getCollections(
 
   // Transform each collection to frontend structure
   return response.data.map(transformCollection);
+}
+
+/**
+ * Creates a new collection
+ * @param data Collection creation data
+ * @returns Created collection
+ */
+export async function createCollection(data: {
+  workspaceId: string;
+  name: string;
+  description?: string | null;
+  iconType?: IconType | null;
+  icon?: string | null;
+}): Promise<BackendCollection> {
+  const response = await apiClient.post<BackendCollection>(
+    COLLECTION_APIS({}).CREATE_COLLECTION,
+    data
+  );
+  return response.data;
 }
 
 /**
