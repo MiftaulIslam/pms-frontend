@@ -1,21 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play } from "lucide-react";
 import heroImage from "/hero-image.jpg";
-import { useNotifications } from "@/hooks/use-notifications";
-// import { useNotifications } from "@/hooks/use-notifications";
-
-
+import { useAuth } from "@/pages/auth/hooks/use-auth";
+import { useNavigate } from "react-router-dom";
+// import { getIcon, type IconComponent } from "@/icons";
 const Hero = () => {
-  const { addNotification } = useNotifications()
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
 
-  const freeTrialHandler = () => {
-    addNotification({
-      type: "success",
-      title: "Free Trial Started",
-      message: "You have successfully started your free trial!",
-      length: 5000,
-    });
-  }
+  const handleGetStarted = () => {
+    if (user) {
+      navigate("/dashboard");
+    } else {
+      navigate("/auth");
+    }
+  };
+// const IconComp = getIcon('outline', 'AcademicCap') as IconComponent;
   return (
     <section className="relative flex justify-center items-center min-h-screen overflow-hidden">
       {/* Background gradient */}
@@ -46,8 +46,8 @@ const Hero = () => {
 
             {/* CTA Buttons */}
             <div className="flex sm:flex-row flex-col gap-4">
-              <Button variant="default" onClick={freeTrialHandler} size="lg" className="group">
-                Start Free Trial
+              <Button variant="default" onClick={handleGetStarted} size="lg" className="group">
+                {loading ? "Loading..." : user ? "Go to Dashboard" : "Get Started"}
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Button>
 

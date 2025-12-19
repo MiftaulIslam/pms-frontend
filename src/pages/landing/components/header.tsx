@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Zap } from "lucide-react";
-// import ThemeToggle from "../../../components/common/theme/theme-toggle";
-import { Link } from "react-router-dom";
 import ThemeToggle from "@/components/theme-toggle";
-// import { OnboardingModal } from "../../../components/onboarding/onboarding-modal";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/pages/auth/hooks/use-auth";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const Header = () => {
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
-
+  const { user, loading } = useAuth();
   return (
     <header className="top-0 right-0 left-0 z-50 fixed bg-background/80 backdrop-blur-lg border-b border-border">
       <div className="mx-auto px-6 py-4 container">
@@ -19,7 +20,7 @@ const Header = () => {
             <div className="flex justify-center items-center bg-gradient-primary rounded-lg w-8 h-8">
               <Zap className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-bold text-foreground text-xl">ProjectFlow</span>
+            <span className="font-bold text-foreground text-xl">Axivo</span>
           </div>
 
           {/* Desktop Navigation */}
@@ -41,12 +42,51 @@ const Header = () => {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
             <ThemeToggle />
-            <Button variant="outline" asChild={true}>
-              <Link to="/signin">Sign In</Link>
-            </Button>
-            <Button variant="default" onClick={() => {
-              setShowOnboardingModal(!showOnboardingModal)
-            }}>Get Started</Button>
+            {loading ? (
+              <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
+            ) : user ? (
+              <div className="flex items-center space-x-3">
+                <Button variant="outline" onClick={() => navigate("/dashboard")}>
+                  Dashboard
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Avatar className="cursor-pointer">
+                      <AvatarImage src={`${import.meta.env.VITE_BACKEND_API}${user.avatar}`} alt={user.name} />
+                      <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <div className="flex items-center justify-start gap-2 p-2">
+                      <div className="flex flex-col space-y-1 leading-none">
+                        <p className="font-medium">{user.name}</p>
+                        <p className="w-[200px] truncate text-sm text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate("/dashboard")}>
+                      Dashboard
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/settings")}>
+                      Settings
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => {
+                      localStorage.removeItem("access_token");
+                      window.location.reload();
+                    }}>
+                      Sign out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            ) : (
+              <Button variant="default" onClick={() => {
+                navigate("/auth");
+              }}>Get Started</Button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -79,19 +119,35 @@ const Header = () => {
                 About
               </a>
               <a href="#contact" className="text-muted-foreground hover:text-foreground transition-smooth">
-                Contactasdas
+                Contact
               </a>
               <div className="flex flex-col space-y-2 pt-4">
-                <Button variant="ghost">Sign In</Button>
-                <Button variant="default" onClick={() => {
-                  alert("Get Started clicked!");
-                  setShowOnboardingModal(!showOnboardingModal)
-                }}>{showOnboardingModal ? "Yes" : "No"}</Button>
+                {loading ? (
+                  <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
+                ) : user ? (
+                  <>
+                    <Button variant="ghost" onClick={() => navigate("/dashboard")}>
+                      Dashboard
+                    </Button>
+                    <Button variant="default" onClick={() => {
+                      localStorage.removeItem("access_token");
+                      window.location.reload();
+                    }}>
+                      Sign out
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="ghost">Sign In</Button>
+                    <Button variant="default" onClick={() => {
+                      navigate("/auth");
+                    }}>Get Started</Button>
+                  </>
+                )}
               </div>
             </nav>
           </div>
         )}
-        {/* <OnboardingModal open={showOnboardingModal} onOpenChange={setShowOnboardingModal} /> */}
       </div>
     </header>
   );

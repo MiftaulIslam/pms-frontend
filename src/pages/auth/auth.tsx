@@ -3,11 +3,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { AuthService } from "@/services/auth-service"
 import { Github, Chrome, Building2, Zap } from "lucide-react"
-
-// import { useAuth } from "@/contexts/auth-context"
+import { useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import { useAuth } from "@/pages/auth/hooks/use-auth"
 
 const AuthPage = () => {
     const authService = new AuthService();
+    const navigate = useNavigate();
+    const { user, loading } = useAuth();
+
+    useEffect(() => {
+        if (!loading && user) {
+            if (user.onboarded) {
+                navigate("/dashboard", { replace: true });
+            } else {
+                navigate("/boarding", { replace: true });
+            }
+        }
+    }, [user, loading, navigate]);
 
 
     const handleGoogleSignIn = () => {

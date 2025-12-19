@@ -7,10 +7,8 @@ import {
   File,
   FileText,
   Folder,
-  Forward,
   MoreHorizontal,
   Plus,
-  Trash2,
   type LucideIcon,
 } from "lucide-react"
 
@@ -43,6 +41,7 @@ import { FolderModal } from "./components/folder-modal"
 import { ListModal } from "./components/list-modal"
 import { CreateCollectionModal } from "./components/create-collection-modal"
 import { DeleteCollectionDialog, DeleteFolderDialog, DeleteItemDialog } from "./components/delete-confirmation"
+import { ItemContextMenu } from "./components/item-context-menu"
 
 type ProjectItem = {
   title: string
@@ -243,19 +242,12 @@ export function NavProjects({
                             <p>{item.title}</p>
                           </TooltipContent>
                         </SidebarMenuButton>
-                        {/* <SidebarMenuButton tooltip={item.title} >
-                          {item.icon && <item.icon />}
-                          <span>{item.title.length > 10 ? item.title.slice(0, 16) + '...' : item.title}</span>
-                          <TooltipContent>
-                            <p>{item.title}</p>
-                          </TooltipContent>
-
-                          {item.items && item.items.length > 0 && (
-                            <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                          )}
-                        </SidebarMenuButton> */}
                       </TooltipTrigger>
                     </Tooltip>
+                  </div>
+                </CollapsibleTrigger>
+                <div className="ml-auto flex items-center gap-1">
+                  
                     {getItemType(item.url) !== 'item' && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -267,7 +259,7 @@ export function NavProjects({
                         <DropdownMenuContent
                           className=" rounded-lg"
                           side={isMobile ? "bottom" : "right"}
-                          align={isMobile ? "end" : "start"}
+                          // align={isMobile ? "end" : "start"}
                         >
                           {getItemType(item.url) === 'collection' && (
                             <DropdownMenuItem onClick={() => handleFolderClick(item)}>
@@ -338,30 +330,23 @@ export function NavProjects({
                         </SidebarMenuAction>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
-                        className="w-48 rounded-lg"
+                        className="w-64 rounded-lg p-2 space-y-1"
                         side={isMobile ? "bottom" : "right"}
-                        align={isMobile ? "end" : "start"}
+                        // align={isMobile ? "end" : "start"}
                       >
-                        <DropdownMenuItem>
-                          <Folder className="text-muted-foreground" />
-                          <span>View Project</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Forward className="text-muted-foreground" />
-                          <span>Share Project</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          variant="destructive"
-                          onClick={() => handleDeleteClick(item)}
-                        >
-                          <Trash2 className="text-muted-foreground" />
-                          <span>Delete {getItemType(item.url) === 'collection' ? 'Collection' : getItemType(item.url) === 'folder' ? 'Folder' : 'Item'}</span>
-                        </DropdownMenuItem>
+                        <ItemContextMenu
+                          kind={getItemType(item.url)}
+                          title={item.title}
+                          onCreateFolder={getItemType(item.url) === 'collection' ? () => handleFolderClick(item) : undefined}
+                          onCreateList={getItemType(item.url) !== 'item' ? () => handleListClick(item) : undefined}
+                          onCreateDoc={() => console.log('Create Doc for', item.title)}
+                          onCreateWhiteboard={() => console.log('Create Whiteboard for', item.title)}
+                          onCreateErd={() => console.log('Create ERD for', item.title)}
+                          onDelete={() => handleDeleteClick(item)}
+                        />
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  </div>
-                </CollapsibleTrigger>
+                </div>
                 {item.items && item.items.length > 0 && (
                   <CollapsibleContent>
                     <SidebarMenuSub className="m-0 p-0! relative left-0.5">
@@ -374,70 +359,6 @@ export function NavProjects({
           </>
 
 
-
-
-          // <Collapsible
-          //   key={item.title}
-          //   asChild
-          //   defaultOpen={item.isActive}
-          //   className="group/collapsible"
-          // >
-          //   <SidebarMenuItem>
-          //     <CollapsibleTrigger asChild>
-          //       <div>
-          //         <SidebarMenuButton tooltip={item.title}>
-          //           {item.icon && <item.icon />}
-          //           <span>{item.title}</span>
-          //           {
-          //             item.items && (
-          //               <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-          //             )
-          //           }
-          //         </SidebarMenuButton>
-          //         <DropdownMenu>
-          //           <DropdownMenuTrigger asChild>
-          //             <SidebarMenuAction>
-          //               <MoreHorizontal />
-          //               <span className="sr-only">More</span>
-          //             </SidebarMenuAction>
-          //           </DropdownMenuTrigger>
-          //           <DropdownMenuContent
-          //             className="w-48 rounded-lg"
-          //             side={isMobile ? "bottom" : "right"}
-          //             align={isMobile ? "end" : "start"}
-          //           >
-          //             <DropdownMenuItem>
-          //               <Folder className="text-muted-foreground" />
-          //               <span>View Project</span>
-          //             </DropdownMenuItem>
-          //             <DropdownMenuItem>
-          //               <Forward className="text-muted-foreground" />
-          //               <span>Share Project</span>
-          //             </DropdownMenuItem>
-          //             <DropdownMenuSeparator />
-          //             <DropdownMenuItem>
-          //               <Trash2 className="text-muted-foreground" />
-          //               <span>Delete Project</span>
-          //             </DropdownMenuItem>
-          //           </DropdownMenuContent>
-          //         </DropdownMenu>
-          //       </div>
-          //     </CollapsibleTrigger>
-          //     <CollapsibleContent>
-          //       <SidebarMenuSub>
-          //         {item.items?.map((subItem) => (
-          //           <SidebarMenuSubItem key={subItem.title}>
-          //             <SidebarMenuSubButton asChild>
-          //               <a href={subItem.url}>
-          //                 <span>{subItem.title}</span>
-          //               </a>
-          //             </SidebarMenuSubButton>
-          //           </SidebarMenuSubItem>
-          //         ))}
-          //       </SidebarMenuSub>
-          //     </CollapsibleContent>
-          //   </SidebarMenuItem>
-          // </Collapsible>
 
         ))}
       </SidebarMenu>
@@ -490,54 +411,5 @@ export function NavProjects({
 
 
 
-
-    // <SidebarGroup >
-    //   <SidebarGroupLabel>Projects</SidebarGroupLabel>
-    //   <SidebarMenu>
-    //     {projects.map((item) => (
-    //       <SidebarMenuItem key={item.title}>
-    //         <SidebarMenuButton asChild>
-    //           <a href={item.url}>
-    //             <item.icon />
-    //             <span>{item.title}</span>
-    //           </a>
-    //         </SidebarMenuButton>
-    //         <DropdownMenu>
-    //           <DropdownMenuTrigger asChild>
-    //             <SidebarMenuAction showOnHover>
-    //               <MoreHorizontal />
-    //               <span className="sr-only">More</span>
-    //             </SidebarMenuAction>
-    //           </DropdownMenuTrigger>
-    //           <DropdownMenuContent
-    //             className="w-48 rounded-lg"
-    //             side={isMobile ? "bottom" : "right"}
-    //             align={isMobile ? "end" : "start"}
-    //           >
-    //             <DropdownMenuItem>
-    //               <Folder className="text-muted-foreground" />
-    //               <span>View Project</span>
-    //             </DropdownMenuItem>
-    //             <DropdownMenuItem>
-    //               <Forward className="text-muted-foreground" />
-    //               <span>Share Project</span>
-    //             </DropdownMenuItem>
-    //             <DropdownMenuSeparator />
-    //             <DropdownMenuItem>
-    //               <Trash2 className="text-muted-foreground" />
-    //               <span>Delete Project</span>
-    //             </DropdownMenuItem>
-    //           </DropdownMenuContent>
-    //         </DropdownMenu>
-    //       </SidebarMenuItem>
-    //     ))}
-    //     <SidebarMenuItem>
-    //       <SidebarMenuButton className="text-sidebar-foreground/70">
-    //         <MoreHorizontal className="text-sidebar-foreground/70" />
-    //         <span>More</span>
-    //       </SidebarMenuButton>
-    //     </SidebarMenuItem>
-    //   </SidebarMenu>
-    // </SidebarGroup>
   )
 }

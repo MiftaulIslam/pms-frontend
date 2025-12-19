@@ -1,0 +1,32 @@
+import React from 'react';
+
+interface ArrowDownTrayProps extends React.SVGProps<SVGSVGElement> {
+  size?: number;
+  className?: string;
+  fill?: string;
+  stroke?: string;
+}
+
+// Set defaults based on type
+const ArrowDownTray: React.FC<ArrowDownTrayProps> = ({
+  size = 24,
+  className = '',
+  fill = 'none',
+  stroke = 'currentColor',
+  ...props
+}) => (
+  <svg
+    width={size}
+    height={size}
+    fill={fill}
+    stroke={stroke}
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    {...props}>
+  <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"></path>
+</svg>
+);
+
+export default ArrowDownTray;
