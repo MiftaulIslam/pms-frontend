@@ -27,11 +27,11 @@ const router = createBrowserRouter([
     },
     {
         path: "/boarding",
-        element: <ProtectedRoute requireOnboarding={true}><Boarding /></ProtectedRoute>,
+        element: <ProtectedRoute requireOnboarding={false}><Boarding /></ProtectedRoute>,
     },
     {
         path: "/dashboard",
-        element: <ProtectedRoute requireOnboarding={false}><DashboardLayout /></ProtectedRoute>,
+        element: <ProtectedRoute requireOnboarding={true}><DashboardLayout /></ProtectedRoute>,
         children: [
             {
                 path: "",

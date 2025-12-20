@@ -3,6 +3,8 @@ import { ArrowRight, Play } from "lucide-react";
 import heroImage from "/hero-image.jpg";
 import { useAuth } from "@/pages/auth/hooks/use-auth";
 import { useNavigate } from "react-router-dom";
+import { InboxStack } from "@/icons/solid";
+// import { getAllIconNames } from "@/icons";
 // import { getIcon, type IconComponent } from "@/icons";
 const Hero = () => {
   const { user, loading } = useAuth();
@@ -15,6 +17,7 @@ const Hero = () => {
       navigate("/auth");
     }
   };
+  // console.log(getAllIconNames('solid'));
 // const IconComp = getIcon('outline', 'AcademicCap') as IconComponent;
   return (
     <section className="relative flex justify-center items-center min-h-screen overflow-hidden">
@@ -33,7 +36,7 @@ const Hero = () => {
 
               <h1 className="font-bold text-foreground text-5xl lg:text-6xl leading-tight">
                 Manage Projects
-                <span className="block bg-clip-text bg-gradient-to-r  from-primary to-primary-foreground  text-transparent">
+                <span className="block bg-clip-text bg-linear-to-r  from-primary to-primary-foreground  text-transparent">
                   Like Never Before
                 </span>
               </h1>
@@ -55,6 +58,7 @@ const Hero = () => {
                 <Play className="w-4 h-4" />
                 Watch Demo
               </Button>
+              <InboxStack color="#60A5FA"/>
             </div>
 
             {/* Social Proof */}

@@ -20,9 +20,15 @@ export function getIcon(type: IconType, name: IconName): IconComponent | undefin
   return (OutlineIcons as Record<string, unknown>)[name] as IconComponent | undefined;
 }
 
-export function getAllIconNames() {
-  return {
+export function getAllIconNames(iconType?: IconType) {
+  const icons = {
     solid: SolidIcons.solidIconNames,
     outline: OutlineIcons.outlineIconNames,
   } as const;
+
+  if (iconType) {
+    return icons[iconType];
+  }
+
+  return icons;
 }
