@@ -1,9 +1,8 @@
-import { ChevronRight, ClipboardList, Database, File, FileText, Folder, MoreHorizontal, Plus, type LucideIcon } from "lucide-react";
+import { ChevronRight, ClipboardList, Database, File, FileText, Folder, MoreHorizontal, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
 import { SidebarMenuAction, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, useSidebar } from "../ui/sidebar";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { DropdownMenu, DropdownMenuSeparator, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { FolderModal } from "./components/folder-modal";
 import { ListModal } from "./components/list-modal";
@@ -11,21 +10,30 @@ import { DeleteCollectionDialog, DeleteFolderDialog, DeleteItemDialog } from "./
 import { useCreateEntity, extractCollectionId, extractFolderId } from "./hooks/use-create-entity";
 import { useDeleteEntity } from "./hooks/use-delete-entity";
 import { ItemContextMenu } from "./components/item-context-menu";
+import type { IconType } from "./types/playground-types";
+import { cn } from "@/lib/utils";
+import { getIcon, type IconComponent, type IconName } from "@/icons";
+import { TruncatedText } from "../common/truncated-text";
+import { useNotifications } from "@/hooks/use-notifications";
 export type NavItem = {
   title: string
   url: string
   itemId?: string
   itemType?: 'list' | 'doc' | 'whiteboard'
   items?: NavItem[]
-  icon?: LucideIcon
+  icon?: string
+  iconColor?: string
+  iconType?: IconType
   collectionId?: string  // Added to track collection ID for folders
 }
 
 export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?: number }) {
+
   console.log("items", items)
   const { isMobile } = useSidebar();
   const { createFolder, createFolderLoading, createList, createListLoading } = useCreateEntity();
   const { deleteCollection, deleteCollectionLoading, deleteFolder, deleteFolderLoading, deleteItem, deleteItemLoading } = useDeleteEntity();
+  const { addNotification } = useNotifications();
 
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [listModalOpen, setListModalOpen] = useState(false);
@@ -143,6 +151,7 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
       {items.map((item) => {
         // Create a unique key for each item to ensure independent state
         const itemKey = `${item.title}-${item.url}-${level}`
+        const IconComp = getIcon(item.iconType as IconType, item.icon as IconName) as IconComponent;
         return (
           <Collapsible
             key={itemKey}
@@ -160,7 +169,13 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
                       {/* ICON */}
                       <span className="relative flex h-4 w-4 items-center justify-center">
                         {item.icon && (
-                          <item.icon className="transition-opacity group-hover/menu-sub-item:opacity-0" />
+                          <span 
+                          className={cn(
+                            'w-6 h-6 rounded-full flex items-center justify-center'
+                          )}
+                          style={{ backgroundColor: item.iconColor }}>
+                            <IconComp color={"white"} className={` size-4 transition-opacity group-hover/menu-sub-item:${item.items && item.items.length > 0 ? 'opacity-0' : 'opacity-100'} `}/>
+                          </span>
                         )}
 
                         {item.items && item.items.length > 0 && (
@@ -171,26 +186,13 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
                       </span>
 
                       {/* TITLE */}
-                      <span>
-                        {item.title.length > 10
-                          ? item.title.slice(0, 16) + '...'
-                          : item.title}
-                      </span>
+                      <TruncatedText 
+                        text={item.title}
+                        maxWidth="130px"
+                      />
 
                     </SidebarMenuSubButton>
-                    {/* <SidebarMenuSubButton className="m-0 p-0">
-
-                      <Tooltip>
-                        <TooltipTrigger className="flex items-center gap-2">
-                          {item.icon && <item.icon className="size-4" />}
-                          <span>{item.title.length > 16 ? item.title.slice(0, 16) + '...' : item.title}</span>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{item.title}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                      <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible-sub:rotate-90" />
-                    </SidebarMenuSubButton> */}
+                    
 
                   </CollapsibleTrigger>
                   <div className="ml-auto flex items-center gap-1">
@@ -281,6 +283,16 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
                         <ItemContextMenu
                           kind={getItemType(item)}
                           title={item.title}
+                          itemId={
+                            getItemType(item) === 'collection'
+                              ? extractCollectionId(item.url) || undefined
+                              : getItemType(item) === 'folder'
+                              ? extractFolderId(item.url) || undefined
+                              : item.itemId
+                          }
+                          currentIconType={item.iconType}
+                          currentIcon={item.icon}
+                          currentColor={item.iconColor}
                           onCreateFolder={getItemType(item) === 'collection' ? () => handleFolderClick(item) : undefined}
                           onCreateList={getItemType(item) !== 'item' ? () => handleListClick(item) : undefined}
                           onCreateDoc={() => console.log('Create Doc for', item.title)}
@@ -304,27 +316,31 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
                   <SidebarMenuSubButton asChild>
                     {item.itemType === 'list' && item.itemId ? (
                       <Link to={`list/${item.itemId}`}>
-                        <Tooltip>
-                          <TooltipTrigger className="flex items-center gap-2">
-                            {item.icon && <item.icon className="size-4" />}
-                            <span>{item.title.length > 16 ? item.title.slice(0, 16) + '...' : item.title}</span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{item.title}</p>
-                          </TooltipContent>
-                        </Tooltip>
+                            {item.icon && <span 
+                            className={cn(
+                              'w-6 h-6 rounded-full flex items-center justify-center'
+                            )}
+                            style={{ backgroundColor: item.iconColor }}>
+                              <IconComp color={"white"} className={` size-4 transition-opacity group-hover/menu-sub-item:${item.items && item.items.length > 0 ? 'opacity-0' : 'opacity-100'} `}/>
+                            </span>}
+                            <TruncatedText 
+                              text={item.title}
+                              maxWidth="130px"
+                            />
                       </Link>
                     ) : (
                       <a href={item.url}>
-                        <Tooltip>
-                          <TooltipTrigger className="flex items-center gap-2">
-                            {item.icon && <item.icon className="size-4" />}
-                            <span>{item.title.length > 16 ? item.title.slice(0, 16) + '...' : item.title}</span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{item.title}</p>
-                          </TooltipContent>
-                        </Tooltip>
+                            {item.icon && <span 
+                            className={cn(
+                              'w-6 h-6 rounded-full flex items-center justify-center'
+                            )}
+                            style={{ backgroundColor: item.iconColor }}>
+                              <IconComp color={"white"} className={` size-4 transition-opacity group-hover/menu-sub-item:${item.items && item.items.length > 0 ? 'opacity-0' : 'opacity-100'} `}/>
+                            </span>}
+                            <TruncatedText 
+                              text={item.title}
+                                maxWidth="130px"
+                            />
                       </a>
                     )}
                   </SidebarMenuSubButton>
@@ -415,6 +431,16 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
                         <ItemContextMenu
                           kind={getItemType(item)}
                           title={item.title}
+                          itemId={
+                            getItemType(item) === 'collection'
+                              ? extractCollectionId(item.url) || undefined
+                              : getItemType(item) === 'folder'
+                              ? extractFolderId(item.url) || undefined
+                              : item.itemId
+                          }
+                          currentIconType={item.iconType}
+                          currentIcon={item.icon}
+                          currentColor={item.iconColor}
                           onCreateFolder={getItemType(item) === 'collection' ? () => handleFolderClick(item) : undefined}
                           onCreateList={getItemType(item) !== 'item' ? () => handleListClick(item) : undefined}
                           onCreateDoc={() => console.log('Create Doc for', item.title)}

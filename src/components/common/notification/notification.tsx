@@ -62,8 +62,8 @@ export const NotificationProvider = () => {
     const remove = useNotificationStore((s) => s.removeNotification)
 
     return (
-        <div className="top-6 right-6 z-[1000] fixed max-w-md">
-            <div className="flex flex-col-reverse gap-2 transition-all reverse">
+        <div className="bottom-6 right-6 z-[1000] fixed max-w-md">
+            <div className="flex flex-col gap-2 transition-all">
                 {notifications.map((notification, index) => (
                     <Notification
                         key={notification.id}
