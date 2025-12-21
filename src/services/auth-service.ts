@@ -67,7 +67,7 @@ export class AuthService {
     return parseFloat(accessExpires) < now;
   }
 
-  private getAccessToken(): string | null {
+  public getAccessToken(): string | null {
     if (this.isTokenExpired()) {
       localStorage.removeItem(this.ACCESS_TOKEN_KEY);
       localStorage.removeItem(this.ACCESS_EXPIRES_KEY);

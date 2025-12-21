@@ -2,16 +2,8 @@
 
 import {
   ChevronRight,
-  ClipboardList,
-  Database,
-  File,
-  FileText,
-  Folder,
-  Forward,
   MoreHorizontal,
   Plus,
-  Trash2,
-  type LucideIcon,
 } from "lucide-react"
 
 import {
@@ -29,13 +21,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
-  // SidebarMenuSubButton,
-  // SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible"
 import { NestedMenuItems, type NavItem } from "./nested-menu-items"
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
 import { useState } from "react"
 import { useCreateEntity, extractCollectionId } from "./hooks/use-create-entity"
 import { useDeleteEntity } from "./hooks/use-delete-entity"
@@ -43,11 +32,18 @@ import { FolderModal } from "./components/folder-modal"
 import { ListModal } from "./components/list-modal"
 import { CreateCollectionModal } from "./components/create-collection-modal"
 import { DeleteCollectionDialog, DeleteFolderDialog, DeleteItemDialog } from "./components/delete-confirmation"
+import { ItemContextMenu } from "./components/item-context-menu"
+import { getIcon, type IconComponent, type IconName, type IconType } from "@/icons"
+import { cn } from "@/lib/utils"
+import { TruncatedText } from "../common/truncated-text"
+import { CircleStack, ClipboardDocument, DocumentText, Folder, ListBullet } from "@/icons/outline"
 
 type ProjectItem = {
   title: string
   url: string
-  icon: LucideIcon
+  icon: string
+  iconColor: string
+  iconType: IconType
   isActive?: boolean
   items?: NavItem[]
 }
@@ -186,6 +182,7 @@ export function NavProjects({
     setDeleteItemOpen(false)
     setDeleteTarget(null)
   }
+  
   return (
 
     <SidebarGroup>
@@ -200,246 +197,174 @@ export function NavProjects({
         </button>
       </div>
       <SidebarMenu>
-        {projects.map((item) => (
-          <>
-            <Collapsible
-              key={item.title}
-              asChild
-              open={openProjects.has(item.title)}
-              onOpenChange={(isOpen) => handleOpenChange(item.title, isOpen)}
-              className="group/collapsible"
-            >
-              <SidebarMenuItem>
-                <CollapsibleTrigger asChild>
-                  <div>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton
-                          tooltip={item.title}
-                          className="group/menu-item"
-                        >
-                          {/* ICON */}
-                          <span className="relative flex h-4 w-4 items-center justify-center">
-                            {item.icon && (
-                              <item.icon className="transition-opacity group-hover/menu-item:opacity-0" />
+        {projects.map((item) =>{
+          const IconComp = getIcon(item.iconType as IconType, item.icon as IconName) as IconComponent;
+          return (
+            <>
+              <Collapsible
+                key={item.title}
+                asChild
+                open={openProjects.has(item.title)}
+                onOpenChange={(isOpen) => handleOpenChange(item.title, isOpen)}
+                className="group/collapsible"
+              >
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <div>
+                          <SidebarMenuButton
+                            tooltip={item.title}
+                            className={`group/menu-item ${item.items && item.items.length > 0 && 'cursor-pointer' }`}
+                          >
+                            {/* ICON */}
+                            <span className="relative flex items-center justify-center">
+                              {item.icon && (
+                                <span 
+                                className={cn(
+                                  'w-6 h-6 rounded-full flex items-center justify-center'
+                                )}
+                                style={{ backgroundColor: item.iconColor }}>
+                                    <IconComp color={"white"} className={` size-4 transition-opacity group-hover/menu-item:${item.items && item.items.length > 0 ? 'opacity-0' : 'opacity-100'} `}/>
+                                  </span>
+                              )}
+  
+                              {item.items && item.items.length > 0 && (
+                                <ChevronRight
+                                  className=" size-4 absolute opacity-0 transition-all duration-200 group-hover/menu-item:opacity-100 group-data-[state=open]/collapsible:rotate-90 flex items-center justify-center"
+                                />
+                              )}
+                            </span>
+  
+                            {/* TITLE */}
+                            <TruncatedText 
+                              text={item.title}
+                              maxWidth="130px"
+                              onTruncated={() => {}}
+                            />
+  
+                          </SidebarMenuButton>
+                      
+                    </div>
+                  </CollapsibleTrigger>
+                  <div className="ml-auto flex items-center gap-1">
+                    
+                      {getItemType(item.url) !== 'item' && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <SidebarMenuAction >
+                              <Plus />
+                              <span className="sr-only">Add</span>
+                            </SidebarMenuAction>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent
+                            className=" rounded-lg"
+                            side={isMobile ? "bottom" : "right"}
+                            // align={isMobile ? "end" : "start"}
+                          >
+                            {getItemType(item.url) === 'collection' && (
+                              <DropdownMenuItem onClick={() => handleFolderClick(item)}>
+                                <div className="flex items-start gap-2 cursor-pointer">
+                                  <Folder className="text-muted-foreground" />
+                                  <p>
+                                    <span className="text-sm font-medium block">Folder</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      Create a new folder to organize your projects
+                                    </span>
+                                  </p>
+                                </div>
+                              </DropdownMenuItem>
                             )}
-
-                            {item.items && item.items.length > 0 && (
-                              <ChevronRight
-                                className=" size-4 absolute opacity-0 transition-all duration-200 group-hover/menu-item:opacity-100 group-data-[state=open]/collapsible:rotate-90
-          "
-                              />
-                            )}
-                          </span>
-
-                          {/* TITLE */}
-                          <span>
-                            {item.title.length > 10
-                              ? item.title.slice(0, 16) + '...'
-                              : item.title}
-                          </span>
-
-                          <TooltipContent>
-                            <p>{item.title}</p>
-                          </TooltipContent>
-                        </SidebarMenuButton>
-                        {/* <SidebarMenuButton tooltip={item.title} >
-                          {item.icon && <item.icon />}
-                          <span>{item.title.length > 10 ? item.title.slice(0, 16) + '...' : item.title}</span>
-                          <TooltipContent>
-                            <p>{item.title}</p>
-                          </TooltipContent>
-
-                          {item.items && item.items.length > 0 && (
-                            <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                          )}
-                        </SidebarMenuButton> */}
-                      </TooltipTrigger>
-                    </Tooltip>
-                    {getItemType(item.url) !== 'item' && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <SidebarMenuAction >
-                            <Plus />
-                            <span className="sr-only">Add</span>
-                          </SidebarMenuAction>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          className=" rounded-lg"
-                          side={isMobile ? "bottom" : "right"}
-                          align={isMobile ? "end" : "start"}
-                        >
-                          {getItemType(item.url) === 'collection' && (
-                            <DropdownMenuItem onClick={() => handleFolderClick(item)}>
+                            <DropdownMenuItem onClick={() => handleListClick(item)}>
                               <div className="flex items-start gap-2 cursor-pointer">
-                                <Folder className="text-muted-foreground" />
+                                <ListBullet className="text-muted-foreground" />
                                 <p>
-                                  <span className="text-sm font-medium block">Folder</span>
+                                  <span className="text-sm font-medium block">List</span>
                                   <span className="text-xs text-muted-foreground">
-                                    Create a new folder to organize your projects
+                                    Track tasks, ideas, and more
                                   </span>
                                 </p>
                               </div>
                             </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem onClick={() => handleListClick(item)}>
-                            <div className="flex items-start gap-2 cursor-pointer">
-                              <ClipboardList className="text-muted-foreground" />
-                              <p>
-                                <span className="text-sm font-medium block">List</span>
-                                <span className="text-xs text-muted-foreground">
-                                  Track tasks, ideas, and more
-                                </span>
-                              </p>
-                            </div>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem>
-                            <div className="flex items-start gap-2 cursor-pointer">
-                              <FileText className="text-muted-foreground" />
-                              <p>
-                                <span className="text-sm font-medium block">Whiteboard</span>
-                                <span className="text-xs text-muted-foreground">
-                                  Collaborate with your team on ideas and plans
-                                </span>
-                              </p>
-                            </div>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <div className="flex items-start gap-2 cursor-pointer">
-                              <File className="text-muted-foreground" />
-                              <p>
-                                <span className="text-sm font-medium block">Doc</span>
-                                <span className="text-xs text-muted-foreground">
-                                  Share files, images, and more
-                                </span>
-                              </p>
-                            </div>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <div className="flex items-start gap-2 cursor-pointer">
-                              <Database className="text-muted-foreground" />
-                              <p>
-                                <span className="text-sm font-medium block">ERD</span>
-                                <span className="text-xs text-muted-foreground">
-                                  Visualize your database schema
-                                </span>
-                              </p>
-                            </div>
-                          </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem>
+                              <div className="flex items-start gap-2 cursor-pointer">
+                                <ClipboardDocument className="text-muted-foreground" />
+                                <p>
+                                  <span className="text-sm font-medium block">Whiteboard</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    Collaborate with your team on ideas and plans
+                                  </span>
+                                </p>
+                              </div>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <div className="flex items-start gap-2 cursor-pointer">
+                                <DocumentText className="text-muted-foreground" />
+                                <p>
+                                  <span className="text-sm font-medium block">Doc</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    Share files, images, and more
+                                  </span>
+                                </p>
+                              </div>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <div className="flex items-start gap-2 cursor-pointer">
+                                <CircleStack className="text-muted-foreground" />
+                                <p>
+                                  <span className="text-sm font-medium block">ERD</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    Visualize your database schema
+                                  </span>
+                                </p>
+                              </div>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <SidebarMenuAction className="right-8">
+                            <MoreHorizontal />
+                            <span className="sr-only">More</span>
+                          </SidebarMenuAction>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          className="w-64 rounded-lg p-2 space-y-1"
+                          side={isMobile ? "bottom" : "right"}
+                        >
+                          <ItemContextMenu
+                            kind={getItemType(item.url)}
+                            title={item.title}
+                            itemId={extractCollectionId(item.url) || undefined}
+                            currentIconType={item.iconType}
+                            currentIcon={item.icon}
+                            currentColor={item.iconColor}
+                            onCreateFolder={getItemType(item.url) === 'collection' ? () => handleFolderClick(item) : undefined}
+                            onCreateList={getItemType(item.url) !== 'item' ? () => handleListClick(item) : undefined}
+                            onCreateDoc={() => console.log('Create Doc for', item.title)}
+                            onCreateWhiteboard={() => console.log('Create Whiteboard for', item.title)}
+                            onCreateErd={() => console.log('Create ERD for', item.title)}
+                            onDelete={() => handleDeleteClick(item)}
+                          />
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    )}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <SidebarMenuAction className="right-8">
-                          <MoreHorizontal />
-                          <span className="sr-only">More</span>
-                        </SidebarMenuAction>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        className="w-48 rounded-lg"
-                        side={isMobile ? "bottom" : "right"}
-                        align={isMobile ? "end" : "start"}
-                      >
-                        <DropdownMenuItem>
-                          <Folder className="text-muted-foreground" />
-                          <span>View Project</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Forward className="text-muted-foreground" />
-                          <span>Share Project</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          variant="destructive"
-                          onClick={() => handleDeleteClick(item)}
-                        >
-                          <Trash2 className="text-muted-foreground" />
-                          <span>Delete {getItemType(item.url) === 'collection' ? 'Collection' : getItemType(item.url) === 'folder' ? 'Folder' : 'Item'}</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
                   </div>
-                </CollapsibleTrigger>
-                {item.items && item.items.length > 0 && (
-                  <CollapsibleContent>
-                    <SidebarMenuSub className="m-0 p-0! relative left-0.5">
-                      <NestedMenuItems items={item.items} />
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                )}
-              </SidebarMenuItem>
-            </Collapsible>
-          </>
-
-
-
-
-          // <Collapsible
-          //   key={item.title}
-          //   asChild
-          //   defaultOpen={item.isActive}
-          //   className="group/collapsible"
-          // >
-          //   <SidebarMenuItem>
-          //     <CollapsibleTrigger asChild>
-          //       <div>
-          //         <SidebarMenuButton tooltip={item.title}>
-          //           {item.icon && <item.icon />}
-          //           <span>{item.title}</span>
-          //           {
-          //             item.items && (
-          //               <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-          //             )
-          //           }
-          //         </SidebarMenuButton>
-          //         <DropdownMenu>
-          //           <DropdownMenuTrigger asChild>
-          //             <SidebarMenuAction>
-          //               <MoreHorizontal />
-          //               <span className="sr-only">More</span>
-          //             </SidebarMenuAction>
-          //           </DropdownMenuTrigger>
-          //           <DropdownMenuContent
-          //             className="w-48 rounded-lg"
-          //             side={isMobile ? "bottom" : "right"}
-          //             align={isMobile ? "end" : "start"}
-          //           >
-          //             <DropdownMenuItem>
-          //               <Folder className="text-muted-foreground" />
-          //               <span>View Project</span>
-          //             </DropdownMenuItem>
-          //             <DropdownMenuItem>
-          //               <Forward className="text-muted-foreground" />
-          //               <span>Share Project</span>
-          //             </DropdownMenuItem>
-          //             <DropdownMenuSeparator />
-          //             <DropdownMenuItem>
-          //               <Trash2 className="text-muted-foreground" />
-          //               <span>Delete Project</span>
-          //             </DropdownMenuItem>
-          //           </DropdownMenuContent>
-          //         </DropdownMenu>
-          //       </div>
-          //     </CollapsibleTrigger>
-          //     <CollapsibleContent>
-          //       <SidebarMenuSub>
-          //         {item.items?.map((subItem) => (
-          //           <SidebarMenuSubItem key={subItem.title}>
-          //             <SidebarMenuSubButton asChild>
-          //               <a href={subItem.url}>
-          //                 <span>{subItem.title}</span>
-          //               </a>
-          //             </SidebarMenuSubButton>
-          //           </SidebarMenuSubItem>
-          //         ))}
-          //       </SidebarMenuSub>
-          //     </CollapsibleContent>
-          //   </SidebarMenuItem>
-          // </Collapsible>
-
-        ))}
+                  {item.items && item.items.length > 0 && (
+                    <CollapsibleContent>
+                      <SidebarMenuSub className="m-0 p-0! relative left-0.5">
+                        <NestedMenuItems items={item.items} />
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  )}
+                </SidebarMenuItem>
+              </Collapsible>
+            </>
+  
+  
+  
+          )
+        } 
+        )}
       </SidebarMenu>
       
       {/* Modals */}
@@ -490,54 +415,5 @@ export function NavProjects({
 
 
 
-
-    // <SidebarGroup >
-    //   <SidebarGroupLabel>Projects</SidebarGroupLabel>
-    //   <SidebarMenu>
-    //     {projects.map((item) => (
-    //       <SidebarMenuItem key={item.title}>
-    //         <SidebarMenuButton asChild>
-    //           <a href={item.url}>
-    //             <item.icon />
-    //             <span>{item.title}</span>
-    //           </a>
-    //         </SidebarMenuButton>
-    //         <DropdownMenu>
-    //           <DropdownMenuTrigger asChild>
-    //             <SidebarMenuAction showOnHover>
-    //               <MoreHorizontal />
-    //               <span className="sr-only">More</span>
-    //             </SidebarMenuAction>
-    //           </DropdownMenuTrigger>
-    //           <DropdownMenuContent
-    //             className="w-48 rounded-lg"
-    //             side={isMobile ? "bottom" : "right"}
-    //             align={isMobile ? "end" : "start"}
-    //           >
-    //             <DropdownMenuItem>
-    //               <Folder className="text-muted-foreground" />
-    //               <span>View Project</span>
-    //             </DropdownMenuItem>
-    //             <DropdownMenuItem>
-    //               <Forward className="text-muted-foreground" />
-    //               <span>Share Project</span>
-    //             </DropdownMenuItem>
-    //             <DropdownMenuSeparator />
-    //             <DropdownMenuItem>
-    //               <Trash2 className="text-muted-foreground" />
-    //               <span>Delete Project</span>
-    //             </DropdownMenuItem>
-    //           </DropdownMenuContent>
-    //         </DropdownMenu>
-    //       </SidebarMenuItem>
-    //     ))}
-    //     <SidebarMenuItem>
-    //       <SidebarMenuButton className="text-sidebar-foreground/70">
-    //         <MoreHorizontal className="text-sidebar-foreground/70" />
-    //         <span>More</span>
-    //       </SidebarMenuButton>
-    //     </SidebarMenuItem>
-    //   </SidebarMenu>
-    // </SidebarGroup>
   )
 }

@@ -35,6 +35,7 @@ import type { PlaygroundCollection, PlaygroundFolder } from "./types/playground-
 import type { IconType } from "./types/playground-types"
 import type { NavItem } from "@/components/sidebar/nested-menu-items"
 import type { LucideIcon } from "lucide-react"
+import { AuthService } from "@/services/auth-service"
 
 // Static navigation data
 const navMain = [
@@ -182,32 +183,26 @@ export function getIconComponent(iconType: IconType | null, icon: string | null,
  */
 function transformFoldersToNavItems(folders: PlaygroundFolder[], collectionId: string): NavItem[] {
   return folders.map((folder) => {
-    // Get default icon for folder
-    const folderDefaultIcon = Folder;
-    const folderIcon = getCachedIconComponent(folder.iconType, folder.icon, folderDefaultIcon);
-    
+
     return {
       title: folder.name,
       url: `#folder-${folder.id}`,
-      icon: folderIcon,
+      icon: folder.icon,
+      iconColor: folder.iconColor,
+      iconType: folder.iconType,
       collectionId: collectionId, // Pass collection ID for folder items
       items: [
         ...transformFoldersToNavItems(folder.childFolders, collectionId),
         ...folder.items.map((item) => {
-          // Get default icon based on item type
-          let itemDefaultIcon: LucideIcon = Frame;
-          if (item.type === 'list') itemDefaultIcon = LayoutDashboard;
-          else if (item.type === 'doc') itemDefaultIcon = FileText;
-          else if (item.type === 'whiteboard') itemDefaultIcon = Paintbrush;
-          
-          const itemIcon = getCachedIconComponent(item.iconType, item.icon, itemDefaultIcon);
-          
+
           return {
             title: item.name,
             url: item.type === 'list' ? `/dashboard/list/${item.id}` : item.type === 'doc' ? `/dashboard/doc/${item.id}` : item.type === 'whiteboard' ? `/dashboard/whiteboard/${item.id}` : `#item-${item.id}`,
             itemId: item.id,
             itemType: item.type,
-            icon: itemIcon,
+            icon: item.icon,
+            iconColor: item.iconColor,
+            iconType: item.iconType,
             collectionId: collectionId, // Pass collection ID for items in folders
           };
         }),
@@ -240,27 +235,23 @@ function getCachedIconComponent(iconType: IconType | null, icon: string | null, 
  * Transforms collections to projects format for NavProjects component
  */
 function transformCollectionsToProjects(collections: PlaygroundCollection[]) {
+
   return collections.map((collection) => {
-    const IconComponent = getCachedIconComponent(collection.iconType, collection.icon, Frame);
+    // const IconComponent = getCachedIconComponent(collection.iconType, collection.icon, Frame);
     
     // Transform folders and items to NavItem format
     const navItems: NavItem[] = [
       ...transformFoldersToNavItems(collection.folders, collection.id),
       ...collection.items.map((item) => {
-        // Get default icon based on item type
-        let itemDefaultIcon: LucideIcon = Frame;
-        if (item.type === 'list') itemDefaultIcon = LayoutDashboard;
-        else if (item.type === 'doc') itemDefaultIcon = FileText;
-        else if (item.type === 'whiteboard') itemDefaultIcon = Paintbrush;
-        
-        const itemIcon = getCachedIconComponent(item.iconType, item.icon, itemDefaultIcon);
         
         return {
           title: item.name,
           url: item.type === 'list' ? `/dashboard/list/${item.id}` : item.type === 'doc' ? `/dashboard/doc/${item.id}` : item.type === 'whiteboard' ? `/dashboard/whiteboard/${item.id}` : `#item-${item.id}`,
           itemId: item.id,
           itemType: item.type,
-          icon: itemIcon,
+          icon: item.icon,
+          iconColor: item.iconColor,
+          iconType: item.iconType,
         };
       }),
     ];
@@ -268,7 +259,9 @@ function transformCollectionsToProjects(collections: PlaygroundCollection[]) {
     return {
       title: collection.name,
       url: `#collection-${collection.id}`,
-      icon: IconComponent,
+      icon: collection.icon,
+      iconColor: collection.iconColor,
+      iconType: collection.iconType,
       isActive: false,
       items: navItems.length > 0 ? navItems : undefined,
     };
@@ -279,6 +272,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth()
   const { setCurrentWorkspaceId, workspaces, setWorkspaces, currentWorkspaceId } = useWorkspace()
 
+  const authService = new AuthService();
   
   // Fetch workspaces with tanStack Query
   const { data: workspacesData, isLoading } = useQuery({
@@ -291,9 +285,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Fetch collections for the current workspace
   const { collections, isLoading: isLoadingCollections } = useCollections()
   
-  // Debug logging
-  React.useEffect(() => {
-  }, [collections, isLoadingCollections])
 
   // Handle workspace selection logic
   React.useEffect(() => {
@@ -315,7 +306,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Handle workspace switching
   const handleWorkspaceSwitch = React.useCallback(async (workspaceId: string) => {
     try {
-      const accessToken = localStorage.getItem("access_token");
+      const accessToken = authService.getAccessToken();
       
       // Update current workspace in context
       setCurrentWorkspaceId(workspaceId)
@@ -364,7 +355,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </Sidebar>
     )
   }
-  
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>

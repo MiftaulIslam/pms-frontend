@@ -11,10 +11,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const [user, setUser] = useState<User | null>(null);       // user object from /users/me
     const [loading, setLoading] = useState<boolean>(true); // initial app loading
 
-    const accessToken = localStorage.getItem("access_token");
-
     // Fetch /users/me on page refresh OR initial load
     const fetchCurrentUser = async (): Promise<void> => {
+        const accessToken = localStorage.getItem("access_token");
+        
         if (!accessToken) {
             setUser(null);
             setLoading(false);
@@ -41,7 +41,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     useEffect(() => {
         fetchCurrentUser();
-        // eslint-disable-next-line
     }, []);
 
     return (

@@ -72,5 +72,13 @@ export const COLLECTION_APIS = (ids:COLLECTION_API_IDS) => {
         UPDATE_KANBAN_COLUMN: `${import.meta.env.VITE_BACKEND_API}/playground/kanban/columns/${ids.itemId}`, //(required authentication) - uses itemId placeholder for columnId
         // reorder a kanban column
         REORDER_KANBAN_COLUMN: `${import.meta.env.VITE_BACKEND_API}/playground/kanban/columns/${ids.itemId}/reorder`, //(required authentication) - uses itemId placeholder for columnId
+        
+        // --------> Duplicate APIs <--------
+        // duplicate a collection
+        DUPLICATE_COLLECTION: `${import.meta.env.VITE_BACKEND_API}/playground/collections/${ids.collectionId}/duplicate`, //(required authentication)
+        // duplicate a folder
+        DUPLICATE_FOLDER: `${import.meta.env.VITE_BACKEND_API}/playground/folders/${ids.folderId}/duplicate`, //(required authentication)
+        // duplicate an item
+        DUPLICATE_ITEM: `${import.meta.env.VITE_BACKEND_API}/playground/items/${ids.itemId}/duplicate`, //(required authentication)
     }
 };

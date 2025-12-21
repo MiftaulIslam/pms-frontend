@@ -8,7 +8,10 @@ import Kanbanv2 from "@/pages/kanbanv2";
 import Boarding from "@/pages/boarding";
 import AuthPage from "@/pages/auth/auth";
 import OAuthSuccess from "@/pages/auth/auth-callback";
+import Documentation from "@/pages/documentation";
+import DocDnd from "@/pages/doc/dnd";
 import { ProtectedRoute } from "@/components/protected-route";
+
 const router = createBrowserRouter([
     {
         path: "/",
@@ -24,15 +27,14 @@ const router = createBrowserRouter([
     },
     {
         path: "/boarding",
-        element: <ProtectedRoute><Boarding /></ProtectedRoute>,
+        element: <ProtectedRoute requireOnboarding={false}><Boarding /></ProtectedRoute>,
     },
     {
         path: "/dashboard",
-        element: <ProtectedRoute><DashboardLayout /></ProtectedRoute>,
+        element: <ProtectedRoute requireOnboarding={true}><DashboardLayout /></ProtectedRoute>,
         children: [
             {
                 path: "",
-                // element: <Kanban />
                 element: <Kanbanv2 />
             },
             {
@@ -41,15 +43,23 @@ const router = createBrowserRouter([
             },
             {
                 path: "doc/:id",
-                // TODO: Add document component when ready
                 element: <div>Document view - Coming soon</div>
             },
             {
                 path: "whiteboard/:id",
-                // TODO: Add whiteboard component when ready
                 element: <div>Whiteboard view - Coming soon</div>
             },
         ]
+    },
+
+    {
+        path: "/documentation",
+        element: <Documentation />,
+    },
+
+    {
+        path: "/doc/dnd",
+        element: <DocDnd />,
     },
 
     {

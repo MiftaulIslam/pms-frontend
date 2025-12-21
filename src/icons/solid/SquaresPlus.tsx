@@ -1,0 +1,32 @@
+import React from 'react';
+
+interface SquaresPlusProps extends React.SVGProps<SVGSVGElement> {
+  size?: number;
+  className?: string;
+  fill?: string;
+  stroke?: string;
+}
+
+// Set defaults based on type
+const SquaresPlus: React.FC<SquaresPlusProps> = ({
+  size = 24,
+  className = '',
+  fill = 'currentColor',
+  stroke = 'none',
+  ...props
+}) => (
+  <svg
+    width={size}
+    height={size}
+    fill={fill}
+    stroke={stroke}
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    {...props}>
+  <path d="M6 3a3 3 0 0 0-3 3v2.25a3 3 0 0 0 3 3h2.25a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3H6ZM15.75 3a3 3 0 0 0-3 3v2.25a3 3 0 0 0 3 3H18a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3h-2.25ZM6 12.75a3 3 0 0 0-3 3V18a3 3 0 0 0 3 3h2.25a3 3 0 0 0 3-3v-2.25a3 3 0 0 0-3-3H6ZM17.625 13.5a.75.75 0 0 0-1.5 0v2.625H13.5a.75.75 0 0 0 0 1.5h2.625v2.625a.75.75 0 0 0 1.5 0v-2.625h2.625a.75.75 0 0 0 0-1.5h-2.625V13.5Z"></path>
+</svg>
+);
+
+export default SquaresPlus;

@@ -9,6 +9,7 @@ import { useAuth } from '@/pages/auth/context/use-auth';
 import { completeBoarding } from './api/boarding-api';
 import { Button } from '@/components/ui/button';
 import { emojiToImageFile } from './utils/emoji-to-image';
+import { uploadImage } from '@/lib/api/image-api';
 
 const steps = [
   { component: Step1Name, title: 'Name' },
@@ -28,33 +29,46 @@ const BoardingContent = () => {
   const completeBoardingProcess = useCallback(async () => {
     try {
       setIsSubmitting(true);
-      const formData = new FormData();
-      formData.append('name', boardingData.name || '');
-      formData.append('heardAboutUs', boardingData.heardFrom || '');
       
-      // Add interests as array
-      if (boardingData.interests) {
-        boardingData.interests.forEach((interest) => {
-          formData.append('interestIn', interest);
-        });
-      }
+      let avatarUrl: string | undefined;
       
-      // Add avatar file if it exists (custom upload)
+      // Handle avatar upload
       if (boardingData.avatarFile) {
-        formData.append('avatar', boardingData.avatarFile);
+        // Upload custom avatar file to image endpoint
+        try {
+          const imageResponse = await uploadImage(boardingData.avatarFile, {
+            userId: user?.id,
+          });
+          avatarUrl = imageResponse.url;
+        } catch (error) {
+          console.error('Failed to upload avatar image:', error);
+          throw error;
+        }
       } else if (boardingData.avatar && boardingData.avatar !== 'custom') {
-        // For emoji avatars, convert to image file first
+        // For emoji avatars, convert to image file and upload
         try {
           const emojiImageFile = await emojiToImageFile(boardingData.avatar);
-          formData.append('avatar', emojiImageFile);
+          const imageResponse = await uploadImage(emojiImageFile, {
+            userId: user?.id,
+          });
+          avatarUrl = imageResponse.url;
         } catch (error) {
-          console.error('Failed to convert emoji to image:', error);
-          // Fallback: send as string if conversion fails
-          formData.append('avatar', boardingData.avatar);
+          console.error('Failed to convert and upload emoji avatar:', error);
+          // If conversion/upload fails, we'll skip the avatar
         }
       }
       
-      await completeBoarding(formData);
+      // Prepare payload for boarding completion
+      const payload = {
+        name: boardingData.name || undefined,
+        heardAboutUs: boardingData.heardFrom || undefined,
+        interestIn: boardingData.interests && boardingData.interests.length > 0 
+          ? boardingData.interests 
+          : undefined,
+        avatar: avatarUrl,
+      };
+      
+      await completeBoarding(payload);
       await fetchCurrentUser(); // Refresh user data to get updated avatar
       navigate('/dashboard');
     } catch (error) {
@@ -62,7 +76,7 @@ const BoardingContent = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [boardingData, navigate, fetchCurrentUser]);
+  }, [boardingData, navigate, fetchCurrentUser, user]);
 
   const skipBoarding = () => {
     navigate('/dashboard');

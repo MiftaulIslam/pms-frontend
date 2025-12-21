@@ -21,6 +21,7 @@ function createFolderObject(backendFolder: BackendFolder): PlaygroundFolder {
     name: backendFolder.name,
     iconType: backendFolder.iconType,
     icon: backendFolder.icon,
+    iconColor: backendFolder.iconColor,
     position: backendFolder.position,
     createdAt: backendFolder.createdAt,
     updatedAt: backendFolder.updatedAt,
@@ -101,6 +102,7 @@ function transformCollection(backendCollection: BackendCollection): PlaygroundCo
     description: backendCollection.description,
     iconType: backendCollection.iconType,
     icon: backendCollection.icon,
+    iconColor: backendCollection.iconColor,
     position: backendCollection.position,
     createdAt: backendCollection.createdAt,
     updatedAt: backendCollection.updatedAt,
@@ -256,5 +258,104 @@ export async function deleteFolder(folderId: string): Promise<void> {
  */
 export async function deleteItem(itemId: string): Promise<void> {
   await apiClient.delete(COLLECTION_APIS({ itemId }).DELETE_ITEM);
+}
+
+/**
+ * Updates a collection's icon and color
+ * @param collectionId Collection ID
+ * @param data Update data
+ * @returns Updated collection
+ */
+export async function updateCollectionIconColor(
+  collectionId: string,
+  data: {
+    iconType?: IconType;
+    icon?: string;
+    iconColor?: string;
+  }
+): Promise<BackendCollection> {
+  const response = await apiClient.patch<BackendCollection>(
+    COLLECTION_APIS({ collectionId }).UPDATE_COLLECTION,
+    data
+  );
+  return response.data;
+}
+
+/**
+ * Updates a folder's icon and color
+ * @param folderId Folder ID
+ * @param data Update data
+ * @returns Updated folder
+ */
+export async function updateFolderIconColor(
+  folderId: string,
+  data: {
+    iconType?: IconType;
+    icon?: string;
+    iconColor?: string;
+  }
+): Promise<BackendFolder> {
+  const response = await apiClient.patch<BackendFolder>(
+    COLLECTION_APIS({ folderId }).UPDATE_FOLDER,
+    data
+  );
+  return response.data;
+}
+
+/**
+ * Updates an item's icon and color
+ * @param itemId Item ID
+ * @param data Update data
+ * @returns Updated item
+ */
+export async function updateItemIconColor(
+  itemId: string,
+  data: {
+    iconType?: IconType;
+    icon?: string;
+    iconColor?: string;
+  }
+): Promise<any> {
+  const response = await apiClient.patch<any>(
+    COLLECTION_APIS({ itemId }).UPDATE_ITEM,
+    data
+  );
+  return response.data;
+}
+
+/**
+ * Duplicates a collection
+ * @param collectionId Collection ID
+ * @returns Duplicated collection
+ */
+export async function duplicateCollection(collectionId: string): Promise<BackendCollection> {
+  const response = await apiClient.post<BackendCollection>(
+    COLLECTION_APIS({ collectionId }).DUPLICATE_COLLECTION
+  );
+  return response.data;
+}
+
+/**
+ * Duplicates a folder
+ * @param folderId Folder ID
+ * @returns Duplicated folder
+ */
+export async function duplicateFolder(folderId: string): Promise<BackendFolder> {
+  const response = await apiClient.post<BackendFolder>(
+    COLLECTION_APIS({ folderId }).DUPLICATE_FOLDER
+  );
+  return response.data;
+}
+
+/**
+ * Duplicates an item
+ * @param itemId Item ID
+ * @returns Duplicated item
+ */
+export async function duplicateItem(itemId: string): Promise<any> {
+  const response = await apiClient.post<any>(
+    COLLECTION_APIS({ itemId }).DUPLICATE_ITEM
+  );
+  return response.data;
 }
 

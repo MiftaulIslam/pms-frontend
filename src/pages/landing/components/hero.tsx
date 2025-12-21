@@ -1,21 +1,24 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play } from "lucide-react";
 import heroImage from "/hero-image.jpg";
-import { useNotifications } from "@/hooks/use-notifications";
-// import { useNotifications } from "@/hooks/use-notifications";
-
-
+import { useAuth } from "@/pages/auth/hooks/use-auth";
+import { useNavigate } from "react-router-dom";
+import { InboxStack } from "@/icons/solid";
+// import { getAllIconNames } from "@/icons";
+// import { getIcon, type IconComponent } from "@/icons";
 const Hero = () => {
-  const { addNotification } = useNotifications()
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
 
-  const freeTrialHandler = () => {
-    addNotification({
-      type: "success",
-      title: "Free Trial Started",
-      message: "You have successfully started your free trial!",
-      length: 5000,
-    });
-  }
+  const handleGetStarted = () => {
+    if (user) {
+      navigate("/dashboard");
+    } else {
+      navigate("/auth");
+    }
+  };
+  // console.log(getAllIconNames('solid'));
+// const IconComp = getIcon('outline', 'AcademicCap') as IconComponent;
   return (
     <section className="relative flex justify-center items-center min-h-screen overflow-hidden">
       {/* Background gradient */}
@@ -33,7 +36,7 @@ const Hero = () => {
 
               <h1 className="font-bold text-foreground text-5xl lg:text-6xl leading-tight">
                 Manage Projects
-                <span className="block bg-clip-text bg-gradient-to-r  from-primary to-primary-foreground  text-transparent">
+                <span className="block bg-clip-text bg-linear-to-r  from-primary to-primary-foreground  text-transparent">
                   Like Never Before
                 </span>
               </h1>
@@ -46,8 +49,8 @@ const Hero = () => {
 
             {/* CTA Buttons */}
             <div className="flex sm:flex-row flex-col gap-4">
-              <Button variant="default" onClick={freeTrialHandler} size="lg" className="group">
-                Start Free Trial
+              <Button variant="default" onClick={handleGetStarted} size="lg" className="group">
+                {loading ? "Loading..." : user ? "Go to Dashboard" : "Get Started"}
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Button>
 
@@ -55,6 +58,7 @@ const Hero = () => {
                 <Play className="w-4 h-4" />
                 Watch Demo
               </Button>
+              <InboxStack color="#60A5FA"/>
             </div>
 
             {/* Social Proof */}
