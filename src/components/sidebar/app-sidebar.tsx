@@ -3,15 +3,10 @@ import * as React from "react"
 import {
   BookOpen,
   Bot,
-  Frame,
   GalleryVerticalEnd,
   Settings2,
   SquareTerminal,
   Loader2,
-  Folder,
-  FileText,
-  Paintbrush,
-  LayoutDashboard,
 } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 
@@ -35,6 +30,7 @@ import type { PlaygroundCollection, PlaygroundFolder } from "./types/playground-
 import type { IconType } from "./types/playground-types"
 import type { NavItem } from "@/components/sidebar/nested-menu-items"
 import type { LucideIcon } from "lucide-react"
+import { AuthService } from "@/services/auth-service"
 
 // Static navigation data
 const navMain = [
@@ -130,7 +126,7 @@ const navMain = [
  * Returns a LucideIcon component or a wrapper that renders emoji/image
  */
 export function getIconComponent(iconType: IconType | null, icon: string | null, defaultIcon: LucideIcon): LucideIcon {
-  if (iconType === 'emoji' && icon) {
+  if (iconType === 'emoji' as IconType && icon) {
     // For emoji, create a wrapper component that renders emoji in SVG foreignObject
     const EmojiIcon = React.forwardRef<SVGSVGElement, React.ComponentProps<typeof defaultIcon>>(
       (props, ref) => {
@@ -147,7 +143,7 @@ export function getIconComponent(iconType: IconType | null, icon: string | null,
     EmojiIcon.displayName = 'EmojiIcon';
     return EmojiIcon as LucideIcon;
   }
-  if (iconType === "image" && icon) {
+  if (iconType === "image" as IconType && icon) {
     // For image, create a wrapper that renders the image
     const imageUrl = icon.startsWith('http') ? icon : `${import.meta.env.VITE_BACKEND_API}${icon}`;
     const ImageIcon = React.forwardRef<SVGSVGElement, React.ComponentProps<typeof defaultIcon>>(
@@ -182,93 +178,59 @@ export function getIconComponent(iconType: IconType | null, icon: string | null,
  */
 function transformFoldersToNavItems(folders: PlaygroundFolder[], collectionId: string): NavItem[] {
   return folders.map((folder) => {
-    // Get default icon for folder
-    const folderDefaultIcon = Folder;
-    const folderIcon = getCachedIconComponent(folder.iconType, folder.icon, folderDefaultIcon);
-    
+
     return {
       title: folder.name,
       url: `#folder-${folder.id}`,
-      icon: folderIcon,
+      icon: folder.icon ?? undefined,
+      iconColor: folder.iconColor ?? undefined,
+      iconType: folder.iconType ?? undefined,
       collectionId: collectionId, // Pass collection ID for folder items
       items: [
         ...transformFoldersToNavItems(folder.childFolders, collectionId),
-        ...folder.items.map((item) => {
-          // Get default icon based on item type
-          let itemDefaultIcon: LucideIcon = Frame;
-          if (item.type === 'list') itemDefaultIcon = LayoutDashboard;
-          else if (item.type === 'doc') itemDefaultIcon = FileText;
-          else if (item.type === 'whiteboard') itemDefaultIcon = Paintbrush;
-          
-          const itemIcon = getCachedIconComponent(item.iconType, item.icon, itemDefaultIcon);
-          
-          return {
-            title: item.name,
-            url: item.type === 'list' ? `/dashboard/list/${item.id}` : item.type === 'doc' ? `/dashboard/doc/${item.id}` : item.type === 'whiteboard' ? `/dashboard/whiteboard/${item.id}` : `#item-${item.id}`,
-            itemId: item.id,
-            itemType: item.type,
-            icon: itemIcon,
-            collectionId: collectionId, // Pass collection ID for items in folders
-          };
-        }),
+        ...folder.items.map((item) => ({
+          title: item.name,
+          url: item.type === 'list' ? `/dashboard/list/${item.id}` : item.type === 'doc' ? `/dashboard/doc/${item.id}` : item.type === 'whiteboard' ? `/dashboard/whiteboard/${item.id}` : `#item-${item.id}`,
+          itemId: item.id,
+          itemType: item.type,
+          icon: item.icon ?? undefined,
+          iconColor: item.iconColor ?? undefined,
+          iconType: item.iconType ?? undefined,
+          collectionId: collectionId,
+        })),
       ],
     };
   });
 }
 
 /**
- * Memoized icon component cache to avoid recreating components
- */
-const iconComponentCache = new Map<string, LucideIcon>();
-
-/**
- * Gets or creates an icon component with caching
- */
-function getCachedIconComponent(iconType: IconType | null, icon: string | null, defaultIcon: LucideIcon): LucideIcon {
-  const cacheKey = `${iconType || 'default'}-${icon || 'default'}`;
-  
-  if (iconComponentCache.has(cacheKey)) {
-    return iconComponentCache.get(cacheKey)!;
-  }
-  
-  const iconComponent = getIconComponent(iconType, icon, defaultIcon);
-  iconComponentCache.set(cacheKey, iconComponent);
-  return iconComponent;
-}
-
-/**
  * Transforms collections to projects format for NavProjects component
  */
 function transformCollectionsToProjects(collections: PlaygroundCollection[]) {
+
   return collections.map((collection) => {
-    const IconComponent = getCachedIconComponent(collection.iconType, collection.icon, Frame);
+    // const IconComponent = getCachedIconComponent(collection.iconType, collection.icon, Frame);
     
     // Transform folders and items to NavItem format
     const navItems: NavItem[] = [
       ...transformFoldersToNavItems(collection.folders, collection.id),
-      ...collection.items.map((item) => {
-        // Get default icon based on item type
-        let itemDefaultIcon: LucideIcon = Frame;
-        if (item.type === 'list') itemDefaultIcon = LayoutDashboard;
-        else if (item.type === 'doc') itemDefaultIcon = FileText;
-        else if (item.type === 'whiteboard') itemDefaultIcon = Paintbrush;
-        
-        const itemIcon = getCachedIconComponent(item.iconType, item.icon, itemDefaultIcon);
-        
-        return {
-          title: item.name,
-          url: item.type === 'list' ? `/dashboard/list/${item.id}` : item.type === 'doc' ? `/dashboard/doc/${item.id}` : item.type === 'whiteboard' ? `/dashboard/whiteboard/${item.id}` : `#item-${item.id}`,
-          itemId: item.id,
-          itemType: item.type,
-          icon: itemIcon,
-        };
-      }),
+      ...collection.items.map((item) => ({
+        title: item.name,
+        url: item.type === 'list' ? `/dashboard/list/${item.id}` : item.type === 'doc' ? `/dashboard/doc/${item.id}` : item.type === 'whiteboard' ? `/dashboard/whiteboard/${item.id}` : `#item-${item.id}`,
+        itemId: item.id,
+        itemType: item.type,
+        icon: item.icon ?? undefined,
+        iconColor: item.iconColor ?? undefined,
+        iconType: item.iconType ?? undefined,
+      })),
     ];
 
     return {
       title: collection.name,
       url: `#collection-${collection.id}`,
-      icon: IconComponent,
+      icon: collection.icon ?? undefined,
+      iconColor: collection.iconColor ?? undefined,
+      iconType: collection.iconType ?? undefined,
       isActive: false,
       items: navItems.length > 0 ? navItems : undefined,
     };
@@ -279,6 +241,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth()
   const { setCurrentWorkspaceId, workspaces, setWorkspaces, currentWorkspaceId } = useWorkspace()
 
+  const authService = new AuthService();
   
   // Fetch workspaces with tanStack Query
   const { data: workspacesData, isLoading } = useQuery({
@@ -291,9 +254,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Fetch collections for the current workspace
   const { collections, isLoading: isLoadingCollections } = useCollections()
   
-  // Debug logging
-  React.useEffect(() => {
-  }, [collections, isLoadingCollections])
 
   // Handle workspace selection logic
   React.useEffect(() => {
@@ -315,7 +275,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Handle workspace switching
   const handleWorkspaceSwitch = React.useCallback(async (workspaceId: string) => {
     try {
-      const accessToken = localStorage.getItem("access_token");
+      const accessToken = authService.getAccessToken();
       
       // Update current workspace in context
       setCurrentWorkspaceId(workspaceId)
@@ -364,7 +324,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </Sidebar>
     )
   }
-  
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>

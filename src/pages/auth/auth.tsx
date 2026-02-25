@@ -38,7 +38,7 @@ const AuthPage = () => {
             {/* Main content - responsive width */}
             <div className="z-10 relative w-full max-w-[340px] xs:max-w-[380px] sm:max-w-md">
                 <Card className="bg-gradient-card shadow-card backdrop-blur-xl border rounded-xl overflow-hidden">
-                    <div className="top-0 right-0 left-0 absolute bg-gradient-to-b from-primary/5 to-transparent h-full sm:h-32" />
+                    <div className="top-0 right-0 left-0 absolute bg-linear-to-b from-primary/5 to-transparent h-full sm:h-32" />
                     {/* Card header with enhanced design - responsive spacing */}
                     <CardHeader className="relative space-y-4 sm:space-y-6 pt-8 sm:pt-12 pb-6 sm:pb-8 text-center">
                         {/* Background accent */}
@@ -52,7 +52,7 @@ const AuthPage = () => {
 
                         {/* Title and description - responsive typography */}
                         <div className="relative space-y-2 sm:space-y-3">
-                            <CardTitle className="bg-clip-text bg-gradient-to-r  from-primary to-primary-foreground  text-transparent font-bold text-2xl sm:text-3xl">
+                            <CardTitle className="bg-clip-text bg-linear-to-r  from-primary to-primary-foreground  text-transparent font-bold text-2xl sm:text-3xl">
                                 Welcome Back
                             </CardTitle>
                             <CardDescription className="text-secondary text-base sm:text-lg">

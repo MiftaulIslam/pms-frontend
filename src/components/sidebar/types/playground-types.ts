@@ -1,8 +1,8 @@
 // Types based on backend entities - ensuring type safety
 
 export type IconType =
-  | "emoji"
-  | "image"
+  | "solid"
+  | "outline"
   export type ItemType =
   | "list"
   | "doc"
@@ -16,6 +16,7 @@ export interface BackendCollection {
   description?: string | null;
   iconType: IconType | null;
   icon: string | null;
+  iconColor: string | null;
   position: number;
   createdAt: string;
   updatedAt: string;
@@ -31,6 +32,7 @@ export interface BackendFolder {
   description?: string | null;
   iconType: IconType | null;
   icon: string | null;
+  iconColor: string | null;
   position: number;
   createdAt: string;
   updatedAt: string;
@@ -46,6 +48,7 @@ export interface BackendItem {
   type: ItemType;
   iconType: IconType | null;
   icon: string | null;
+  iconColor: string | null;
   position: number;
   createdAt: string;
   updatedAt: string;
@@ -60,6 +63,7 @@ export interface PlaygroundItem {
   type: ItemType;
   iconType: IconType | null;
   icon: string | null;
+  iconColor: string | null;
   position: number;
   createdAt: string;
   updatedAt: string;
@@ -72,6 +76,7 @@ export interface PlaygroundFolder {
   name: string;
   iconType: IconType | null;
   icon: string | null;
+  iconColor: string | null;
   position: number;
   createdAt: string;
   updatedAt: string;
@@ -86,6 +91,7 @@ export interface PlaygroundCollection {
   description?: string | null;
   iconType: IconType | null;
   icon: string | null;
+  iconColor: string | null;
   position: number;
   createdAt: string;
   updatedAt: string;

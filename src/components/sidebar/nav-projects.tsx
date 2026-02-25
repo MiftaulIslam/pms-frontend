@@ -2,14 +2,8 @@
 
 import {
   ChevronRight,
-  ClipboardList,
-  Database,
-  File,
-  FileText,
-  Folder,
   MoreHorizontal,
   Plus,
-  type LucideIcon,
 } from "lucide-react"
 
 import {
@@ -27,13 +21,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
-  // SidebarMenuSubButton,
-  // SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible"
 import { NestedMenuItems, type NavItem } from "./nested-menu-items"
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
 import { useState } from "react"
 import { useCreateEntity, extractCollectionId } from "./hooks/use-create-entity"
 import { useDeleteEntity } from "./hooks/use-delete-entity"
@@ -42,11 +33,17 @@ import { ListModal } from "./components/list-modal"
 import { CreateCollectionModal } from "./components/create-collection-modal"
 import { DeleteCollectionDialog, DeleteFolderDialog, DeleteItemDialog } from "./components/delete-confirmation"
 import { ItemContextMenu } from "./components/item-context-menu"
+import { getIcon, type IconComponent, type IconName, type IconType } from "@/icons"
+import { cn } from "@/lib/utils"
+import { TruncatedText } from "../common/truncated-text"
+import { CircleStack, ClipboardDocument, DocumentText, Folder, ListBullet } from "@/icons/outline"
 
 type ProjectItem = {
   title: string
   url: string
-  icon: LucideIcon
+  icon?: string | null
+  iconColor?: string | null
+  iconType?: IconType | null
   isActive?: boolean
   items?: NavItem[]
 }
@@ -185,6 +182,7 @@ export function NavProjects({
     setDeleteItemOpen(false)
     setDeleteTarget(null)
   }
+  
   return (
 
     <SidebarGroup>
@@ -199,168 +197,174 @@ export function NavProjects({
         </button>
       </div>
       <SidebarMenu>
-        {projects.map((item) => (
-          <>
-            <Collapsible
-              key={item.title}
-              asChild
-              open={openProjects.has(item.title)}
-              onOpenChange={(isOpen) => handleOpenChange(item.title, isOpen)}
-              className="group/collapsible"
-            >
-              <SidebarMenuItem>
-                <CollapsibleTrigger asChild>
-                  <div>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton
-                          tooltip={item.title}
-                          className="group/menu-item"
-                        >
-                          {/* ICON */}
-                          <span className="relative flex h-4 w-4 items-center justify-center">
-                            {item.icon && (
-                              <item.icon className="transition-opacity group-hover/menu-item:opacity-0" />
+        {projects.map((item) =>{
+          const IconComp = getIcon(item.iconType as IconType, item.icon as IconName) as IconComponent;
+          return (
+            <>
+              <Collapsible
+                key={item.title}
+                asChild
+                open={openProjects.has(item.title)}
+                onOpenChange={(isOpen) => handleOpenChange(item.title, isOpen)}
+                className="group/collapsible"
+              >
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <div>
+                          <SidebarMenuButton
+                            tooltip={item.title}
+                            className={`group/menu-item ${item.items && item.items.length > 0 && 'cursor-pointer' }`}
+                          >
+                            {/* ICON */}
+                            <span className="relative flex items-center justify-center">
+                              {item.icon && (
+                                <span 
+                                className={cn(
+                                  'w-6 h-6 rounded-full flex items-center justify-center'
+                                )}
+                                style={{ backgroundColor: item.iconColor ?? undefined }}>
+                                    <IconComp color={"white"} className={` size-4 transition-opacity group-hover/menu-item:${item.items && item.items.length > 0 ? 'opacity-0' : 'opacity-100'} `}/>
+                                  </span>
+                              )}
+  
+                              {item.items && item.items.length > 0 && (
+                                <ChevronRight
+                                  className=" size-4 absolute opacity-0 transition-all duration-200 group-hover/menu-item:opacity-100 group-data-[state=open]/collapsible:rotate-90 flex items-center justify-center"
+                                />
+                              )}
+                            </span>
+  
+                            {/* TITLE */}
+                            <TruncatedText 
+                              text={item.title}
+                              maxWidth="130px"
+                              onTruncated={() => {}}
+                            />
+  
+                          </SidebarMenuButton>
+                      
+                    </div>
+                  </CollapsibleTrigger>
+                  <div className="ml-auto flex items-center gap-1">
+                    
+                      {getItemType(item.url) !== 'item' && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <SidebarMenuAction >
+                              <Plus />
+                              <span className="sr-only">Add</span>
+                            </SidebarMenuAction>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent
+                            className=" rounded-lg"
+                            side={isMobile ? "bottom" : "right"}
+                            // align={isMobile ? "end" : "start"}
+                          >
+                            {getItemType(item.url) === 'collection' && (
+                              <DropdownMenuItem onClick={() => handleFolderClick(item)}>
+                                <div className="flex items-start gap-2 cursor-pointer">
+                                  <Folder className="text-muted-foreground" />
+                                  <p>
+                                    <span className="text-sm font-medium block">Folder</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      Create a new folder to organize your projects
+                                    </span>
+                                  </p>
+                                </div>
+                              </DropdownMenuItem>
                             )}
-
-                            {item.items && item.items.length > 0 && (
-                              <ChevronRight
-                                className=" size-4 absolute opacity-0 transition-all duration-200 group-hover/menu-item:opacity-100 group-data-[state=open]/collapsible:rotate-90
-          "
-                              />
-                            )}
-                          </span>
-
-                          {/* TITLE */}
-                          <span>
-                            {item.title.length > 10
-                              ? item.title.slice(0, 16) + '...'
-                              : item.title}
-                          </span>
-
-                          <TooltipContent>
-                            <p>{item.title}</p>
-                          </TooltipContent>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                    </Tooltip>
-                  </div>
-                </CollapsibleTrigger>
-                <div className="ml-auto flex items-center gap-1">
-                  
-                    {getItemType(item.url) !== 'item' && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <SidebarMenuAction >
-                            <Plus />
-                            <span className="sr-only">Add</span>
-                          </SidebarMenuAction>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          className=" rounded-lg"
-                          side={isMobile ? "bottom" : "right"}
-                          // align={isMobile ? "end" : "start"}
-                        >
-                          {getItemType(item.url) === 'collection' && (
-                            <DropdownMenuItem onClick={() => handleFolderClick(item)}>
+                            <DropdownMenuItem onClick={() => handleListClick(item)}>
                               <div className="flex items-start gap-2 cursor-pointer">
-                                <Folder className="text-muted-foreground" />
+                                <ListBullet className="text-muted-foreground" />
                                 <p>
-                                  <span className="text-sm font-medium block">Folder</span>
+                                  <span className="text-sm font-medium block">List</span>
                                   <span className="text-xs text-muted-foreground">
-                                    Create a new folder to organize your projects
+                                    Track tasks, ideas, and more
                                   </span>
                                 </p>
                               </div>
                             </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem onClick={() => handleListClick(item)}>
-                            <div className="flex items-start gap-2 cursor-pointer">
-                              <ClipboardList className="text-muted-foreground" />
-                              <p>
-                                <span className="text-sm font-medium block">List</span>
-                                <span className="text-xs text-muted-foreground">
-                                  Track tasks, ideas, and more
-                                </span>
-                              </p>
-                            </div>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem>
-                            <div className="flex items-start gap-2 cursor-pointer">
-                              <FileText className="text-muted-foreground" />
-                              <p>
-                                <span className="text-sm font-medium block">Whiteboard</span>
-                                <span className="text-xs text-muted-foreground">
-                                  Collaborate with your team on ideas and plans
-                                </span>
-                              </p>
-                            </div>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <div className="flex items-start gap-2 cursor-pointer">
-                              <File className="text-muted-foreground" />
-                              <p>
-                                <span className="text-sm font-medium block">Doc</span>
-                                <span className="text-xs text-muted-foreground">
-                                  Share files, images, and more
-                                </span>
-                              </p>
-                            </div>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <div className="flex items-start gap-2 cursor-pointer">
-                              <Database className="text-muted-foreground" />
-                              <p>
-                                <span className="text-sm font-medium block">ERD</span>
-                                <span className="text-xs text-muted-foreground">
-                                  Visualize your database schema
-                                </span>
-                              </p>
-                            </div>
-                          </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem>
+                              <div className="flex items-start gap-2 cursor-pointer">
+                                <ClipboardDocument className="text-muted-foreground" />
+                                <p>
+                                  <span className="text-sm font-medium block">Whiteboard</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    Collaborate with your team on ideas and plans
+                                  </span>
+                                </p>
+                              </div>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <div className="flex items-start gap-2 cursor-pointer">
+                                <DocumentText className="text-muted-foreground" />
+                                <p>
+                                  <span className="text-sm font-medium block">Doc</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    Share files, images, and more
+                                  </span>
+                                </p>
+                              </div>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <div className="flex items-start gap-2 cursor-pointer">
+                                <CircleStack className="text-muted-foreground" />
+                                <p>
+                                  <span className="text-sm font-medium block">ERD</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    Visualize your database schema
+                                  </span>
+                                </p>
+                              </div>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <SidebarMenuAction className="right-8">
+                            <MoreHorizontal />
+                            <span className="sr-only">More</span>
+                          </SidebarMenuAction>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          className="w-64 rounded-lg p-2 space-y-1"
+                          side={isMobile ? "bottom" : "right"}
+                        >
+                          <ItemContextMenu
+                            kind={getItemType(item.url)}
+                            title={item.title}
+                            itemId={extractCollectionId(item.url) || undefined}
+                            currentIconType={item.iconType ?? undefined}
+                            currentIcon={item.icon ?? undefined}
+                            currentColor={item.iconColor ?? undefined}
+                            onCreateFolder={getItemType(item.url) === 'collection' ? () => handleFolderClick(item) : undefined}
+                            onCreateList={getItemType(item.url) !== 'item' ? () => handleListClick(item) : undefined}
+                            onCreateDoc={() => console.log('Create Doc for', item.title)}
+                            onCreateWhiteboard={() => console.log('Create Whiteboard for', item.title)}
+                            onCreateErd={() => console.log('Create ERD for', item.title)}
+                            onDelete={() => handleDeleteClick(item)}
+                          />
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    )}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <SidebarMenuAction className="right-8">
-                          <MoreHorizontal />
-                          <span className="sr-only">More</span>
-                        </SidebarMenuAction>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        className="w-64 rounded-lg p-2 space-y-1"
-                        side={isMobile ? "bottom" : "right"}
-                        // align={isMobile ? "end" : "start"}
-                      >
-                        <ItemContextMenu
-                          kind={getItemType(item.url)}
-                          title={item.title}
-                          onCreateFolder={getItemType(item.url) === 'collection' ? () => handleFolderClick(item) : undefined}
-                          onCreateList={getItemType(item.url) !== 'item' ? () => handleListClick(item) : undefined}
-                          onCreateDoc={() => console.log('Create Doc for', item.title)}
-                          onCreateWhiteboard={() => console.log('Create Whiteboard for', item.title)}
-                          onCreateErd={() => console.log('Create ERD for', item.title)}
-                          onDelete={() => handleDeleteClick(item)}
-                        />
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-                {item.items && item.items.length > 0 && (
-                  <CollapsibleContent>
-                    <SidebarMenuSub className="m-0 p-0! relative left-0.5">
-                      <NestedMenuItems items={item.items} />
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                )}
-              </SidebarMenuItem>
-            </Collapsible>
-          </>
-
-
-
-        ))}
+                  </div>
+                  {item.items && item.items.length > 0 && (
+                    <CollapsibleContent>
+                      <SidebarMenuSub className="m-0 p-0! relative left-0.5">
+                        <NestedMenuItems items={item.items} />
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  )}
+                </SidebarMenuItem>
+              </Collapsible>
+            </>
+  
+  
+  
+          )
+        } 
+        )}
       </SidebarMenu>
       
       {/* Modals */}
