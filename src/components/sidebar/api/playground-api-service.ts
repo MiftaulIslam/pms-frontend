@@ -102,7 +102,6 @@ function transformCollection(backendCollection: BackendCollection): PlaygroundCo
     description: backendCollection.description,
     iconType: backendCollection.iconType,
     icon: backendCollection.icon,
-    iconColor: backendCollection.iconColor,
     position: backendCollection.position,
     createdAt: backendCollection.createdAt,
     updatedAt: backendCollection.updatedAt,
