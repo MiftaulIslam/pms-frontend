@@ -229,7 +229,6 @@ function transformCollectionsToProjects(collections: PlaygroundCollection[]) {
       title: collection.name,
       url: `#collection-${collection.id}`,
       icon: collection.icon ?? undefined,
-      iconColor: collection.iconColor ?? undefined,
       iconType: collection.iconType ?? undefined,
       isActive: false,
       items: navItems.length > 0 ? navItems : undefined,

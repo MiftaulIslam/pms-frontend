@@ -132,7 +132,7 @@ export const ItemContextMenu: FC<ItemContextMenuProps> = ({
 
     try {
       if (kind === "collection") {
-        await updateCollection({ collectionId: itemId, iconColor: color });
+        await updateCollection({ collectionId: itemId });
       } else if (kind === "folder") {
         await updateFolder({ folderId: itemId, iconColor: color });
       } else {
