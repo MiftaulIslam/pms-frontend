@@ -176,8 +176,9 @@ export const ColorIconPicker: React.FC<ColorIconPickerProps> = ({
 
       <div className="max-h-56 overflow-y-auto rounded-md border bg-background p-1">
         <div className="grid grid-cols-8 gap-1">
-          {icons.map((name: IconName) => {
-            const IconComp = getIcon(activeTab, name);
+          {icons.map((name) => {
+            const iconName = name as IconName;
+            const IconComp = getIcon(activeTab, iconName);
             if (!IconComp) return null;
             return (
               <button
@@ -187,7 +188,7 @@ export const ColorIconPicker: React.FC<ColorIconPickerProps> = ({
                   "flex h-7 w-7 items-center justify-center rounded hover:bg-accent transition-all",
                   currentIcon === name && currentIconType === activeTab && "bg-accent ring-2 ring-primary"
                 )}
-                onClick={() => handleIconSelect(name)}
+                onClick={() => handleIconSelect(iconName)}
               >
                 <IconComp className="h-4 w-4" />
               </button>

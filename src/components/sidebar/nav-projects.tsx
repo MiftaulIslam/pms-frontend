@@ -41,9 +41,9 @@ import { CircleStack, ClipboardDocument, DocumentText, Folder, ListBullet } from
 type ProjectItem = {
   title: string
   url: string
-  icon: string
-  iconColor: string
-  iconType: IconType
+  icon?: string | null
+  iconColor?: string | null
+  iconType?: IconType | null
   isActive?: boolean
   items?: NavItem[]
 }
@@ -222,7 +222,7 @@ export function NavProjects({
                                 className={cn(
                                   'w-6 h-6 rounded-full flex items-center justify-center'
                                 )}
-                                style={{ backgroundColor: item.iconColor }}>
+                                style={{ backgroundColor: item.iconColor ?? undefined }}>
                                     <IconComp color={"white"} className={` size-4 transition-opacity group-hover/menu-item:${item.items && item.items.length > 0 ? 'opacity-0' : 'opacity-100'} `}/>
                                   </span>
                               )}
@@ -336,9 +336,9 @@ export function NavProjects({
                             kind={getItemType(item.url)}
                             title={item.title}
                             itemId={extractCollectionId(item.url) || undefined}
-                            currentIconType={item.iconType}
-                            currentIcon={item.icon}
-                            currentColor={item.iconColor}
+                            currentIconType={item.iconType ?? undefined}
+                            currentIcon={item.icon ?? undefined}
+                            currentColor={item.iconColor ?? undefined}
                             onCreateFolder={getItemType(item.url) === 'collection' ? () => handleFolderClick(item) : undefined}
                             onCreateList={getItemType(item.url) !== 'item' ? () => handleListClick(item) : undefined}
                             onCreateDoc={() => console.log('Create Doc for', item.title)}

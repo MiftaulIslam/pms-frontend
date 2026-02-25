@@ -3,15 +3,10 @@ import * as React from "react"
 import {
   BookOpen,
   Bot,
-  Frame,
   GalleryVerticalEnd,
   Settings2,
   SquareTerminal,
   Loader2,
-  Folder,
-  FileText,
-  Paintbrush,
-  LayoutDashboard,
 } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 
@@ -131,7 +126,7 @@ const navMain = [
  * Returns a LucideIcon component or a wrapper that renders emoji/image
  */
 export function getIconComponent(iconType: IconType | null, icon: string | null, defaultIcon: LucideIcon): LucideIcon {
-  if (iconType === 'emoji' && icon) {
+  if (iconType === 'emoji' as IconType && icon) {
     // For emoji, create a wrapper component that renders emoji in SVG foreignObject
     const EmojiIcon = React.forwardRef<SVGSVGElement, React.ComponentProps<typeof defaultIcon>>(
       (props, ref) => {
@@ -148,7 +143,7 @@ export function getIconComponent(iconType: IconType | null, icon: string | null,
     EmojiIcon.displayName = 'EmojiIcon';
     return EmojiIcon as LucideIcon;
   }
-  if (iconType === "image" && icon) {
+  if (iconType === "image" as IconType && icon) {
     // For image, create a wrapper that renders the image
     const imageUrl = icon.startsWith('http') ? icon : `${import.meta.env.VITE_BACKEND_API}${icon}`;
     const ImageIcon = React.forwardRef<SVGSVGElement, React.ComponentProps<typeof defaultIcon>>(
@@ -187,48 +182,25 @@ function transformFoldersToNavItems(folders: PlaygroundFolder[], collectionId: s
     return {
       title: folder.name,
       url: `#folder-${folder.id}`,
-      icon: folder.icon,
-      iconColor: folder.iconColor,
-      iconType: folder.iconType,
+      icon: folder.icon ?? undefined,
+      iconColor: folder.iconColor ?? undefined,
+      iconType: folder.iconType ?? undefined,
       collectionId: collectionId, // Pass collection ID for folder items
       items: [
         ...transformFoldersToNavItems(folder.childFolders, collectionId),
-        ...folder.items.map((item) => {
-
-          return {
-            title: item.name,
-            url: item.type === 'list' ? `/dashboard/list/${item.id}` : item.type === 'doc' ? `/dashboard/doc/${item.id}` : item.type === 'whiteboard' ? `/dashboard/whiteboard/${item.id}` : `#item-${item.id}`,
-            itemId: item.id,
-            itemType: item.type,
-            icon: item.icon,
-            iconColor: item.iconColor,
-            iconType: item.iconType,
-            collectionId: collectionId, // Pass collection ID for items in folders
-          };
-        }),
+        ...folder.items.map((item) => ({
+          title: item.name,
+          url: item.type === 'list' ? `/dashboard/list/${item.id}` : item.type === 'doc' ? `/dashboard/doc/${item.id}` : item.type === 'whiteboard' ? `/dashboard/whiteboard/${item.id}` : `#item-${item.id}`,
+          itemId: item.id,
+          itemType: item.type,
+          icon: item.icon ?? undefined,
+          iconColor: item.iconColor ?? undefined,
+          iconType: item.iconType ?? undefined,
+          collectionId: collectionId,
+        })),
       ],
     };
   });
-}
-
-/**
- * Memoized icon component cache to avoid recreating components
- */
-const iconComponentCache = new Map<string, LucideIcon>();
-
-/**
- * Gets or creates an icon component with caching
- */
-function getCachedIconComponent(iconType: IconType | null, icon: string | null, defaultIcon: LucideIcon): LucideIcon {
-  const cacheKey = `${iconType || 'default'}-${icon || 'default'}`;
-  
-  if (iconComponentCache.has(cacheKey)) {
-    return iconComponentCache.get(cacheKey)!;
-  }
-  
-  const iconComponent = getIconComponent(iconType, icon, defaultIcon);
-  iconComponentCache.set(cacheKey, iconComponent);
-  return iconComponent;
 }
 
 /**
@@ -242,26 +214,23 @@ function transformCollectionsToProjects(collections: PlaygroundCollection[]) {
     // Transform folders and items to NavItem format
     const navItems: NavItem[] = [
       ...transformFoldersToNavItems(collection.folders, collection.id),
-      ...collection.items.map((item) => {
-        
-        return {
-          title: item.name,
-          url: item.type === 'list' ? `/dashboard/list/${item.id}` : item.type === 'doc' ? `/dashboard/doc/${item.id}` : item.type === 'whiteboard' ? `/dashboard/whiteboard/${item.id}` : `#item-${item.id}`,
-          itemId: item.id,
-          itemType: item.type,
-          icon: item.icon,
-          iconColor: item.iconColor,
-          iconType: item.iconType,
-        };
-      }),
+      ...collection.items.map((item) => ({
+        title: item.name,
+        url: item.type === 'list' ? `/dashboard/list/${item.id}` : item.type === 'doc' ? `/dashboard/doc/${item.id}` : item.type === 'whiteboard' ? `/dashboard/whiteboard/${item.id}` : `#item-${item.id}`,
+        itemId: item.id,
+        itemType: item.type,
+        icon: item.icon ?? undefined,
+        iconColor: item.iconColor ?? undefined,
+        iconType: item.iconType ?? undefined,
+      })),
     ];
 
     return {
       title: collection.name,
       url: `#collection-${collection.id}`,
-      icon: collection.icon,
-      iconColor: collection.iconColor,
-      iconType: collection.iconType,
+      icon: collection.icon ?? undefined,
+      iconColor: collection.iconColor ?? undefined,
+      iconType: collection.iconType ?? undefined,
       isActive: false,
       items: navItems.length > 0 ? navItems : undefined,
     };

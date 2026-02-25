@@ -14,7 +14,6 @@ import type { IconType } from "./types/playground-types";
 import { cn } from "@/lib/utils";
 import { getIcon, type IconComponent, type IconName } from "@/icons";
 import { TruncatedText } from "../common/truncated-text";
-import { useNotifications } from "@/hooks/use-notifications";
 export type NavItem = {
   title: string
   url: string
@@ -33,7 +32,6 @@ export function NestedMenuItems({ items, level = 0 }: { items: NavItem[]; level?
   const { isMobile } = useSidebar();
   const { createFolder, createFolderLoading, createList, createListLoading } = useCreateEntity();
   const { deleteCollection, deleteCollectionLoading, deleteFolder, deleteFolderLoading, deleteItem, deleteItemLoading } = useDeleteEntity();
-  const { addNotification } = useNotifications();
 
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [listModalOpen, setListModalOpen] = useState(false);

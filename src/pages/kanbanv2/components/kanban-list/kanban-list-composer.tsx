@@ -76,7 +76,7 @@ const KanbanListComposer: React.FC<KanbanListComposerProps> = ({
               <SelectValue />
             )}
           </SelectTrigger>
-          <SelectContent align="start">
+          <SelectContent>
             <SelectItem value="low" textValue="Low">
               <p className="flex items-center gap-2">
                 <Flag className={`w-4 h-4 ${PRIORITY_COLOR.low}`} />{" "}
